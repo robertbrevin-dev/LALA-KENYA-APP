@@ -1,0 +1,79 @@
+/* LALA Kenya Custom Theme */
+:root {
+  /* LALA Colors */
+  --lala-night: #0D0F14;
+  --lala-deep: #13161E;
+  --lala-card: #1A1D27;
+  --lala-border: #252836;
+  --lala-gold: #E8B86D;
+  --lala-gold-light: #F5D08A;
+  --lala-teal: #3ECFB2;
+  --lala-coral: #FF6B6B;
+  --lala-muted: #6B7280;
+  --lala-soft: #9CA3AF;
+  --lala-white: #F9FAFB;
+  --lala-text: #E5E7EB;
+  --lala-mpesa: #00a651;
+  
+  /* Font Families */
+  --font-playfair: 'Playfair Display', serif;
+  --font-dm-sans: 'DM Sans', sans-serif;
+}
+
+body {
+  font-family: var(--font-dm-sans);
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* Dark mode specific LALA theme overrides (optional) */
+.dark {
+  --lala-background: var(--lala-night);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--lala-border);
+  border-radius: 10px;
+}
+
+/* Animation keyframes */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
