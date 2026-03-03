@@ -18,9 +18,10 @@ interface AppContextType {
     booking: Booking,
     participantRole: 'guest' | 'host',
     participantName: string,
-    participantId: string
+    participantId: string,
+    participantPhone?: string
   ) => string;
-  startCall: (conversationId: string, participantName: string) => void;
+  startCall: (conversationId: string, participantName: string, participantPhone?: string) => void;
   endCall: () => void;
   markMessagesAsRead: (conversationId: string) => void;
   updateUserAvatar: (url: string) => Promise<void>;
@@ -180,6 +181,46 @@ export function AppProvider({ children }: { children: ReactNode }) {
     fetchProperties();
   }, []);
 
+  // Add mock conversations for testing phone calling feature
+  useEffect(() => {
+    const mockConversations: Conversation[] = [
+      {
+        id: 'conv-1',
+        bookingId: 'booking-1',
+        propertyTitle: 'Cozy Studio in Kilimani',
+        propertyImage: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800',
+        participantId: 'host-1',
+        participantName: 'Sarah Kimani',
+        participantPhone: '+254712345678',
+        participantRole: 'host',
+        lastMessage: 'The apartment is available for your dates!',
+        lastMessageTime: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+        unreadCount: 2,
+        messages: [
+          {
+            id: 'msg-1',
+            conversationId: 'conv-1',
+            senderId: 'guest-1',
+            senderName: 'John Doe',
+            text: 'Hi, is the apartment available next weekend?',
+            timestamp: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
+            read: true,
+          },
+          {
+            id: 'msg-2',
+            conversationId: 'conv-1',
+            senderId: 'host-1',
+            senderName: 'Sarah Kimani',
+            text: 'The apartment is available for your dates!',
+            timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+            read: false,
+          },
+        ],
+      },
+    ];
+    setConversations(mockConversations);
+  }, []);
+
   const toggleFavorite = async (propertyId: string) => {
     if (!currentUser) return;
     const isFav = favorites.includes(propertyId);
@@ -261,7 +302,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     booking: Booking,
     participantRole: 'guest' | 'host',
     participantName: string,
-    participantId: string
+    participantId: string,
+    participantPhone?: string
   ): string => {
     const conversationId = `conv-${booking.id}`;
     const existing = conversations.find(c => c.id === conversationId);
@@ -274,6 +316,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       propertyImage: property?.image || '',
       participantId,
       participantName,
+      participantPhone,
       participantRole,
       lastMessage: 'Start a conversation',
       lastMessageTime: new Date().toISOString(),
@@ -284,8 +327,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return conversationId;
   };
 
-  const startCall = (conversationId: string, participantName: string) => {
-    setCallStatus({ active: true, conversationId, participantName, duration: 0 });
+  const startCall = (conversationId: string, participantName: string, participantPhone?: string) => {
+    // If phone number is available, redirect to phone dialer
+    if (participantPhone) {
+      window.location.href = `tel:${participantPhone}`;
+    } else {
+      // Fallback to in-app call simulation if no phone number
+      setCallStatus({ active: true, conversationId, participantName, duration: 0 });
+    }
   };
 
   const endCall = () => setCallStatus({ active: false });

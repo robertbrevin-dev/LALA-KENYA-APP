@@ -30,6 +30,11 @@ export default function HostSignup() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [tab, setTab] = useState<Tab>('email');
+  
+  // Debug: Log authentication state
+  console.log('HostSignup - Component mounted');
+  console.log('Current step:', step);
+  console.log('Current tab:', tab);
 
   // Personal
   const [name, setName] = useState('');
@@ -101,6 +106,8 @@ export default function HostSignup() {
   }, []);
 
   const handleGoogle = async () => {
+    console.log('🔍 Google OAuth - Starting...');
+    console.log('🔍 Google OAuth - Provider: google');
     setGLoading(true); setError('');
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -110,7 +117,11 @@ export default function HostSignup() {
         skipBrowserRedirect: true,
       },
     });
-    if (error) { setError(error.message); setGLoading(false); return; }
+    console.log('🔍 Google OAuth - Response:', { data, error });
+    if (error) {
+      console.error('🔍 Google OAuth - Error:', error.message);
+      setError(error.message); setGLoading(false); return;
+    }
     const popup = data?.url ? openCenteredPopup(data.url, 'LALA Kenya — Google') : null;
     if (!popup) {
       setError('Popup blocked. Please allow popups and try again.');
@@ -132,14 +143,22 @@ export default function HostSignup() {
   const handleStep1 = () => { if (!validateStep1()) return; setError(''); setStep(2); };
 
   const handleEmailSignup = async () => {
+    console.log('📧 Email Signup - Starting...');
+    console.log('📧 Email Signup - Data:', { name: name.trim(), email: email.trim(), password, bizName: bizName.trim() });
+    
     if (!bizName.trim()) { setError('Please enter your business or property name'); return; }
     if (!agreed) { setError('Please agree to the Host Terms to continue'); return; }
     setLoading(true); setError('');
     const { data, error } = await supabase.auth.signUp({
-      email: email.trim(), password,
+      email: email.trim(),
+      password,
       options: { data: { full_name: name.trim(), role: 'host', business_name: bizName.trim() } },
     });
-    if (error) { setError(error.message); setLoading(false); return; }
+    console.log('📧 Email Signup - Response:', { data, error });
+    if (error) {
+      console.error('📧 Email Signup - Error:', error.message);
+      setError(error.message); setLoading(false); return;
+    }
     if (data.user) {
       await supabase.from('profiles').upsert({ id: data.user.id, full_name: name.trim(), email: email.trim(), role: 'host', business_name: bizName.trim() });
     }
