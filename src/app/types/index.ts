@@ -101,6 +101,7 @@ export interface Conversation {
   propertyImage: string;
   participantId: string;
   participantName: string;
+  participantPhone?: string;
   participantAvatar?: string;
   participantRole: 'guest' | 'host';
   lastMessage: string;

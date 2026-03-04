@@ -4,9 +4,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { supabase, isAuthEnabled } from '../../lib/supabase';
 import BackRefreshBar from '../components/BackRefreshBar';
 import { useApp } from '../context/AppContext';
+import { useLanguage } from '../context/LanguageContext';
 import { COUNTRY_CODES, CountryCode, GoogleIcon, CountryPicker, OtpRow } from './AuthShared.tsx';
 import { openCenteredPopup } from '../lib/oauthPopup';
-import AuthDisabledBanner from '../components/AuthDisabledBanner';
 
 type Tab = 'email' | 'phone';
 
@@ -28,6 +28,7 @@ const inputStyle = { background: CARD, border: BORDER, color: 'white' };
 export default function Login() {
   const navigate = useNavigate();
   const { currentUser } = useApp();
+  const { t } = useLanguage();
   const [tab, setTab] = useState<Tab>('email');
 
   // Email
@@ -53,8 +54,8 @@ export default function Login() {
 
   useEffect(() => {
     if (resend <= 0) return;
-    const t = setTimeout(() => setResend(v => v - 1), 1000);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setResend(v => v - 1), 1000);
+    return () => clearTimeout(timer);
   }, [resend]);
 
   // Auto-submit OTP when all 6 digits filled
@@ -143,14 +144,19 @@ export default function Login() {
 
         <div className="relative z-10 flex flex-col flex-1 px-7 pt-14 pb-8 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
 
+          {/* Language Switcher */}
+          <div className="flex justify-end mb-4">
+            <LanguageSwitcher compact />
+          </div>
+
           {/* Logo */}
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
             <div className="w-[58px] h-[58px] rounded-[18px] flex items-center justify-center mx-auto mb-3"
               style={{ background: `linear-gradient(135deg, ${GOLD}, #C8903D)`, boxShadow: `0 16px 40px rgba(232,184,109,0.3)` }}>
               <span style={{ fontFamily: 'var(--font-playfair)', fontSize: 28, fontWeight: 900, color: '#0D0F14' }}>L</span>
             </div>
-            <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: 28, fontWeight: 900, color: 'white' }}>Welcome back</h1>
-            <p className="text-[13px] mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Sign in to your LALA account</p>
+            <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: 28, fontWeight: 900, color: 'white' }}>{t('auth.welcome_back')}</h1>
+            <p className="text-[13px] mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>{t('auth.sign_in_to_account')}</p>
           </motion.div>
           {!isAuthEnabled && <AuthDisabledBanner />}
 
@@ -162,13 +168,13 @@ export default function Login() {
             className="w-full py-3.5 rounded-[16px] border-none cursor-pointer mb-2 flex items-center justify-center gap-3"
             style={{ background: 'white', color: '#111', fontWeight: 700, fontSize: 14, boxShadow: '0 4px 24px rgba(0,0,0,0.5)', opacity: gLoading ? 0.8 : 1 }}>
             {gLoading ? <div className="w-5 h-5 rounded-full border-2 border-gray-300 border-t-blue-500 animate-spin" /> : <GoogleIcon />}
-            {gLoading ? 'Opening Google...' : 'Continue with Google'}
+            {gLoading ? t('auth.opening_google') : t('auth.continue_with_google')}
           </motion.button>
 
           {/* Divider */}
           <div className="flex items-center gap-3 my-5">
             <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
-            <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.3)' }}>or continue with</span>
+            <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.3)' }}>{t('auth.or_continue_with')}</span>
             <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
           </div>
 
@@ -183,7 +189,7 @@ export default function Login() {
                   background: tab === t ? GOLD : 'transparent',
                   color: tab === t ? '#0D0F14' : 'rgba(255,255,255,0.4)',
                 }}>
-                {t === 'email' ? '✉️ Email' : '📱 Phone'}
+                {t === 'email' ? `✉️ ${t('auth.email')}` : `📱 ${t('auth.phone')}`}
               </button>
             ))}
           </div>
@@ -195,17 +201,17 @@ export default function Login() {
               <motion.div key="email"
                 initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }}
                 className="flex flex-col gap-4">
-                <Field label="EMAIL ADDRESS">
+                <Field label={t('auth.email_address')}>
                   <input type="email" value={email} onChange={e => setEmail(e.target.value)}
                     placeholder="you@example.com" autoComplete="email"
                     onKeyDown={e => e.key === 'Enter' && handleEmailLogin()}
                     className={inputCls} style={inputStyle} />
                 </Field>
-                <Field label="PASSWORD">
+                <Field label={t('auth.password')}>
                   <div className="relative">
                     <input type={showPass ? 'text' : 'password'} value={password}
                       onChange={e => setPassword(e.target.value)}
-                      placeholder="Enter your password" autoComplete="current-password"
+                      placeholder={t('auth.min_characters')} autoComplete="current-password"
                       onKeyDown={e => e.key === 'Enter' && handleEmailLogin()}
                       className={inputCls} style={{ ...inputStyle, paddingRight: 48 }} />
                     <button onClick={() => setShowPass(v => !v)}
@@ -224,11 +230,11 @@ export default function Login() {
                       style={{ background: rememberMe ? GOLD : 'rgba(255,255,255,0.07)', border: rememberMe ? 'none' : '1.5px solid rgba(255,255,255,0.15)' }}>
                       {rememberMe && <span className="text-[11px] font-black" style={{ color: '#0D0F14' }}>✓</span>}
                     </div>
-                    <span className="text-[12px]" style={{ color: 'rgba(255,255,255,0.45)' }}>Remember me</span>
+                    <span className="text-[12px]" style={{ color: 'rgba(255,255,255,0.45)' }}>{t('auth.remember_me')}</span>
                   </button>
                   <button onClick={() => navigate('/forgot-password')}
                     className="text-[12px] border-none bg-transparent cursor-pointer"
-                    style={{ color: GOLD, fontWeight: 700 }}>Forgot password?</button>
+                    style={{ color: GOLD, fontWeight: 700 }}>{t('auth.forgot_password')}</button>
                 </div>
 
                 <AnimatePresence>
@@ -244,7 +250,7 @@ export default function Login() {
                 <motion.button whileTap={{ scale: 0.98 }} onClick={handleEmailLogin} disabled={loading || !isAuthEnabled}
                   className="w-full py-4 rounded-[16px] border-none cursor-pointer font-bold text-[15px]"
                   style={{ background: loading ? 'rgba(255,255,255,0.1)' : `linear-gradient(135deg, ${GOLD}, #C8903D)`, color: loading ? 'rgba(255,255,255,0.4)' : '#0D0F14' }}>
-                  {loading ? 'Signing in...' : 'Sign In →'}
+                  {loading ? t('auth.signing_in') : `${t('auth.sign_in')} →`}
                 </motion.button>
               </motion.div>
             )}
@@ -254,7 +260,7 @@ export default function Login() {
               <motion.div key="phone-input"
                 initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }}
                 className="flex flex-col gap-4">
-                <Field label="PHONE NUMBER">
+                <Field label={t('auth.phone_number')}>
                   <div className="flex gap-2">
                     {/* Country code button */}
                     <motion.button whileTap={{ scale: 0.97 }}
@@ -277,7 +283,7 @@ export default function Login() {
                       className={`flex-1 ${inputCls}`} style={inputStyle} />
                   </div>
                   <p className="text-[11px] mt-2" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                    {country.flag} We'll send a 6-digit SMS code to {country.code} {phone || '...'}
+                    {country.flag} {t('auth.phone_login_requires_sms')}
                   </p>
                 </Field>
 
@@ -294,7 +300,7 @@ export default function Login() {
                 <motion.button whileTap={{ scale: 0.98 }} onClick={handleSendOTP} disabled={loading || !isAuthEnabled}
                   className="w-full py-4 rounded-[16px] border-none cursor-pointer font-bold text-[15px]"
                   style={{ background: loading ? 'rgba(255,255,255,0.1)' : `linear-gradient(135deg, ${GOLD}, #C8903D)`, color: loading ? 'rgba(255,255,255,0.4)' : '#0D0F14' }}>
-                  {loading ? 'Sending SMS...' : 'Send Code via SMS 📲'}
+                  {loading ? t('auth.sending_sms') : t('auth.send_code_sms')}
                 </motion.button>
 
                 <div className="px-4 py-3 rounded-[14px]"
@@ -313,9 +319,9 @@ export default function Login() {
                 className="flex flex-col gap-5">
                 <div className="text-center">
                   <div className="text-[48px] mb-3">📲</div>
-                  <div className="text-[17px] font-bold" style={{ color: 'white' }}>Check your messages</div>
+                  <div className="text-[17px] font-bold" style={{ color: 'white' }}>{t('auth.check_messages')}</div>
                   <div className="text-[13px] mt-1.5 leading-relaxed" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                    We sent a 6-digit code to<br/>
+                    {t('auth.code_sent_to')}<br/>
                     <span style={{ color: GOLD, fontWeight: 700 }}>{country.flag} {country.code} {phone}</span>
                   </div>
                 </div>
@@ -325,16 +331,16 @@ export default function Login() {
                 <div className="text-center">
                   {resend > 0 ? (
                     <span className="text-[13px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                      Resend code in {resend}s
+                      {t('auth.resend_in', { resend })}
                     </span>
                   ) : (
                     <div className="flex items-center justify-center gap-3">
                       <button onClick={() => { setPhoneStep('input'); setOtp(['','','','','','']); setError(''); }}
                         className="text-[13px] border-none bg-transparent cursor-pointer"
-                        style={{ color: GOLD, fontWeight: 700 }}>← Change number</button>
+                        style={{ color: GOLD, fontWeight: 700 }}>{t('auth.change_number')}</button>
                       <span style={{ color: 'rgba(255,255,255,0.2)' }}>·</span>
                       <button onClick={handleSendOTP} className="text-[13px] border-none bg-transparent cursor-pointer"
-                        style={{ color: GOLD, fontWeight: 700 }}>Resend code</button>
+                        style={{ color: GOLD, fontWeight: 700 }}>{t('auth.resend_code')}</button>
                     </div>
                   )}
                 </div>
@@ -357,7 +363,7 @@ export default function Login() {
                     background: otp.join('').length < 6 ? 'rgba(255,255,255,0.07)' : `linear-gradient(135deg, ${GOLD}, #C8903D)`,
                     color: otp.join('').length < 6 ? 'rgba(255,255,255,0.25)' : '#0D0F14',
                   }}>
-                  {loading ? 'Verifying...' : otp.join('').length === 6 ? 'Verifying automatically...' : `Enter all 6 digits (${otp.filter(Boolean).length}/6)`}
+                  {loading ? t('auth.verifying') : otp.join('').length === 6 ? t('auth.verifying') : `${t('auth.enter_all_digits')} (${otp.filter(Boolean).length}/6)`}
                 </motion.button>
               </motion.div>
             )}
@@ -366,14 +372,14 @@ export default function Login() {
 
           {/* Footer */}
           <div className="mt-6 text-center">
-            <span className="text-[13px]" style={{ color: 'rgba(255,255,255,0.35)' }}>New to LALA? </span>
+            <span className="text-[13px]" style={{ color: 'rgba(255,255,255,0.35)' }}>{t('auth.already_have_account')} </span>
             <button onClick={() => navigate('/signup')}
               className="text-[13px] border-none bg-transparent cursor-pointer"
-              style={{ color: GOLD, fontWeight: 700 }}>Create free account</button>
+              style={{ color: GOLD, fontWeight: 700 }}>{t('auth.create_account')}</button>
           </div>
           <button onClick={() => navigate('/')}
             className="mt-3 text-[12px] w-full border-none bg-transparent cursor-pointer"
-            style={{ color: 'rgba(255,255,255,0.25)' }}>← Back to home</button>
+            style={{ color: 'rgba(255,255,255,0.25)' }}>{t('auth.back_to_home')}</button>
         </div>
 
         {/* Country Picker */}

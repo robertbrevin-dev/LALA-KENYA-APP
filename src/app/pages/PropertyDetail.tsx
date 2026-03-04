@@ -13,7 +13,7 @@ import { supabase } from '../../lib/supabase';
 export default function PropertyDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { properties, currentUser } = useApp();
+  const { properties, currentUser, createConversation } = useApp();
   
   const property = properties.find(p => p.id === id);
   
@@ -23,6 +23,50 @@ export default function PropertyDetail() {
   const [bookingLoading, setBookingLoading] = useState(false);
   const [activeBooking, setActiveBooking] = useState<any | null>(null);
   const [availabilityError, setAvailabilityError] = useState<string | null>(null);
+
+  // Handler functions for contacting host
+  const handleMessageHost = () => {
+    if (!currentUser) {
+      alert('Please log in to message the host');
+      navigate('/login');
+      return;
+    }
+    
+    // Create a mock booking for conversation creation
+    const mockBooking = {
+      id: `booking-${Date.now()}`,
+      propertyId: property.id,
+      propertyTitle: property.title,
+      propertyLocation: property.location,
+      guestId: currentUser.id,
+      guestName: currentUser.name,
+      guestPhone: currentUser.phone,
+      checkIn: new Date().toISOString(),
+      checkOut: addDays(new Date(), 1).toISOString(),
+      nights: 1,
+      totalAmount: property.price,
+      status: 'pending' as const,
+      createdAt: new Date().toISOString(),
+    };
+    
+    // Create conversation and navigate to it
+    const conversationId = createConversation(
+      mockBooking,
+      'guest',
+      property.hostName,
+      property.hostId,
+      // Mock host phone for testing
+      '+2547' + Math.floor(Math.random() * 90000000 + 10000000)
+    );
+    
+    navigate(`/conversation/${conversationId}`);
+  };
+
+  const handleCallHost = () => {
+    // Mock host phone number for calling
+    const hostPhone = '+2547' + Math.floor(Math.random() * 90000000 + 10000000);
+    window.location.href = `tel:${hostPhone}`;
+  };
 
   if (!property) {
     return (
@@ -600,6 +644,34 @@ export default function PropertyDetail() {
                   Joined {property.hostJoined} · {property.hostProperties} properties
                 </div>
               </div>
+            </div>
+            
+            {/* Contact Host Buttons */}
+            <div className="flex gap-2 mt-3">
+              <button
+                onClick={handleMessageHost}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl transition-all hover:opacity-90"
+                style={{
+                  background: 'var(--lala-teal)',
+                  color: 'white',
+                  fontWeight: 600,
+                  fontSize: '13px'
+                }}
+              >
+                💬 Message Host
+              </button>
+              <button
+                onClick={handleCallHost}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl transition-all hover:opacity-90"
+                style={{
+                  background: 'var(--lala-gold)',
+                  color: 'var(--lala-deep)',
+                  fontWeight: 600,
+                  fontSize: '13px'
+                }}
+              >
+                📞 Call Host
+              </button>
             </div>
             {property.responseRate && (
               <div className="flex gap-4">

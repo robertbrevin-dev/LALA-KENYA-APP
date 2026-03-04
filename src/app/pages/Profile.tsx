@@ -13,7 +13,26 @@ export default function Profile() {
     { icon: '👤', label: 'Personal Information', path: '/profile/personal' },
     { icon: '🔒', label: 'Login & Security', path: '/profile/security' },
     { icon: '💳', label: 'Payment Methods', path: '/profile/payments' },
-    { icon: '🔔', label: 'Notifications', path: '/profile/notifications' },
+    { 
+      icon: (
+        <div className="w-5 h-5 rounded-full flex items-center justify-center relative"
+          style={{
+            background: 'var(--lala-deep)',
+            border: '1px solid var(--lala-border)'
+          }}
+        >
+          <span className="text-[12px]" style={{ color: 'var(--lala-white)' }}>🔔</span>
+          <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full"
+            style={{
+              background: 'var(--lala-gold)',
+              border: '1px solid var(--lala-night)'
+            }}
+          />
+        </div>
+      ), 
+      label: 'Notifications', 
+      path: '/profile/notifications' 
+    },
     { icon: '❓', label: 'Help Center', path: '/profile/help' },
     { icon: '📄', label: 'Terms & Policies', path: '/profile/terms' },
   ];
@@ -72,7 +91,13 @@ export default function Profile() {
                   borderBottom: index < menuItems.length - 1 ? '1px solid var(--lala-border)' : 'none',
                   color: 'var(--lala-white)'
                 }}>
-                <span className="text-[20px]">{item.icon}</span>
+                {typeof item.icon === 'string' ? (
+                  <span className="text-[20px]">{item.icon}</span>
+                ) : (
+                  <div className="flex items-center justify-center">
+                    {item.icon}
+                  </div>
+                )}
                 <span className="flex-1 text-[14px]" style={{ fontWeight: 500 }}>{item.label}</span>
                 <span className="text-[12px]" style={{ color: 'var(--lala-muted)' }}>→</span>
               </motion.button>

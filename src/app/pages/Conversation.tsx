@@ -4,17 +4,36 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Phone, Video, Send, ArrowLeft, PhoneOff } from 'lucide-react';
 import PhoneFrame from '../components/PhoneFrame';
 import BackRefreshBar from '../components/BackRefreshBar';
+import BottomNav from '../components/BottomNav';
 import { useApp } from '../context/AppContext';
 
 export default function Conversation() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { conversations, currentUser, sendMessage, sendSimulatedMessage, markMessagesAsRead, callStatus, startCall, endCall } = useApp();
+  const appContext = useApp(); // Get entire context safely
+  
+  // Defensive: Check if context exists before destructuring
+  if (!appContext) {
+    return (
+      <PhoneFrame>
+        <div className="flex-1 flex items-center justify-center">
+          <p style={{ color: 'var(--lala-soft)' }}>Loading...</p>
+        </div>
+      </PhoneFrame>
+    );
+  }
+
+  const { conversations, currentUser, sendMessage, sendSimulatedMessage, markMessagesAsRead, callStatus, startCall, endCall } = appContext;
   const [messageText, setMessageText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showCallUI, setShowCallUI] = useState(false);
 
+  // Debug: Log route params and conversation lookup
+  console.log('Conversation component - route ID:', id);
+  console.log('Conversation component - available conversations:', conversations);
+
   const conversation = conversations.find(c => c.id === id);
+  console.log('Conversation component - found conversation:', conversation);
 
   useEffect(() => {
     if (conversation) {
@@ -30,7 +49,7 @@ export default function Conversation() {
     setShowCallUI(callStatus.active && callStatus.conversationId === id);
   }, [callStatus.active, callStatus.conversationId, id]);
 
-  if (!conversation) {
+  if (!conversation || !conversations) {
     return (
       <PhoneFrame>
         <div className="flex-1 flex items-center justify-center">
@@ -40,8 +59,20 @@ export default function Conversation() {
     );
   }
 
+  // Debug: Log conversation details
+  console.log('Conversation component - conversation found:', !!conversation);
+  if (conversation) {
+    console.log('Conversation component - participant phone:', conversation.participantPhone);
+    console.log('Conversation component - participant name:', conversation.participantName);
+  }
+
   const handleSend = () => {
-    if (messageText.trim()) {
+    if (!currentUser) {
+      alert('Please log in to send messages');
+      return;
+    }
+    
+    if (messageText.trim() && conversation) {
       sendMessage(conversation.id, messageText.trim());
       setMessageText('');
       
@@ -55,7 +86,7 @@ export default function Conversation() {
         ];
         const randomResponse = responses[Math.floor(Math.random() * responses.length)];
         
-        // Add simulated response from the other party
+        // Add simulated response from other party
         sendSimulatedMessage(
           conversation.id,
           conversation.participantId,
@@ -67,7 +98,7 @@ export default function Conversation() {
   };
 
   const handleStartCall = () => {
-    startCall(conversation.id, conversation.participantName);
+    startCall(conversation.id, conversation.participantName, conversation.participantPhone);
   };
 
   const handleEndCall = () => {
@@ -183,15 +214,29 @@ export default function Conversation() {
           </button>
 
           <div className="flex-1 min-w-0">
-            <h3 
-              className="text-[15px] truncate"
-              style={{ 
-                color: 'var(--lala-white)',
-                fontWeight: 600
-              }}
-            >
-              {conversation.participantName}
-            </h3>
+            <div className="flex items-center gap-2 mb-1">
+              <h3 
+                className="text-[15px] truncate"
+                style={{ 
+                  color: 'var(--lala-white)',
+                  fontWeight: 600
+                }}
+              >
+                {conversation.participantName}
+              </h3>
+              {conversation.participantPhone && (
+                <div 
+                  className="px-2 py-0.5 rounded-full text-[10px] font-medium"
+                  style={{
+                    background: 'rgba(34, 197, 94, 0.15)',
+                    color: '#22c55e',
+                    border: '1px solid rgba(34, 197, 94, 0.3)'
+                  }}
+                >
+                  📱 Phone
+                </div>
+              )}
+            </div>
             <p 
               className="text-[12px] truncate"
               style={{ color: 'var(--lala-soft)' }}
@@ -204,21 +249,36 @@ export default function Conversation() {
           <div className="flex gap-2">
             <button
               onClick={handleStartCall}
-              className="flex items-center justify-center w-10 h-10 rounded-full transition-all hover:opacity-70"
+              className="flex items-center justify-center w-10 h-10 rounded-full transition-all hover:opacity-70 relative group"
               style={{
-                background: 'var(--lala-teal)',
+                background: conversation.participantPhone ? 'var(--lala-teal)' : 'var(--lala-deep)',
+                opacity: conversation.participantPhone ? 1 : 0.6
               }}
+              title={conversation.participantPhone ? `Call ${conversation.participantPhone}` : 'Phone number not available'}
             >
               <Phone size={18} color="white" />
+              {conversation.participantPhone && (
+                <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{
+                    background: 'var(--lala-night)',
+                    color: 'var(--lala-white)',
+                    border: '1px solid var(--lala-border)'
+                  }}
+                >
+                  {conversation.participantPhone}
+                </div>
+              )}
             </button>
             <button
               onClick={handleStartCall}
               className="flex items-center justify-center w-10 h-10 rounded-full transition-all hover:opacity-70"
               style={{
-                background: 'var(--lala-gold)',
+                background: conversation.participantPhone ? 'var(--lala-gold)' : 'var(--lala-deep)',
+                opacity: conversation.participantPhone ? 1 : 0.6
               }}
+              title={conversation.participantPhone ? 'Video call' : 'Video call not available'}
             >
-              <Video size={18} color="var(--lala-deep)" />
+              <Video size={18} color={conversation.participantPhone ? 'var(--lala-deep)' : 'var(--lala-muted)'} />
             </button>
           </div>
         </div>
@@ -242,7 +302,7 @@ export default function Conversation() {
           ) : (
             <div className="space-y-4">
               {conversation.messages.map((message, index) => {
-                const isCurrentUser = message.senderId === currentUser.id;
+                const isCurrentUser = currentUser && message.senderId === currentUser.id;
                 return (
                   <motion.div
                     key={message.id}
@@ -300,18 +360,20 @@ export default function Conversation() {
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-              placeholder="Type a message..."
+              placeholder={currentUser ? "Type a message..." : "Please log in to send messages"}
+              disabled={!currentUser}
               className="flex-1 bg-transparent border-none outline-none text-[14px]"
               style={{
                 color: 'var(--lala-white)',
+                opacity: currentUser ? 1 : 0.6,
               }}
             />
             <button
               onClick={handleSend}
-              disabled={!messageText.trim()}
+              disabled={!messageText.trim() || !currentUser}
               className="flex items-center justify-center w-8 h-8 rounded-full transition-all disabled:opacity-40"
               style={{
-                background: messageText.trim() ? 'var(--lala-gold)' : 'transparent',
+                background: (messageText.trim() && currentUser) ? 'var(--lala-gold)' : 'transparent',
               }}
             >
               <Send size={16} color={messageText.trim() ? 'var(--lala-deep)' : 'var(--lala-muted)'} />
@@ -319,6 +381,7 @@ export default function Conversation() {
           </div>
         </div>
       </div>
+      <BottomNav />
     </PhoneFrame>
   );
 }

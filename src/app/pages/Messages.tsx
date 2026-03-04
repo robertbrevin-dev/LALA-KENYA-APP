@@ -6,8 +6,19 @@ import { useApp } from '../context/AppContext';
 import BackRefreshBar from '../components/BackRefreshBar';
 
 export default function Messages() {
-  const { conversations } = useApp();
+  const { conversations, currentUser } = useApp();
   const navigate = useNavigate();
+
+  // Debug: Log conversations and navigation attempts
+  console.log('Messages component - conversations:', conversations);
+  console.log('Messages component - currentUser:', currentUser);
+  console.log('Messages component - conversations length:', conversations?.length);
+  
+  const handleConversationClick = (conversationId: string) => {
+    console.log('Attempting to navigate to conversation:', conversationId);
+    console.log('Navigation URL:', `/conversation/${conversationId}`);
+    navigate(`/conversation/${conversationId}`);
+  };
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -56,7 +67,7 @@ export default function Messages() {
 
         {/* Conversations List */}
         <div className="px-6 pb-24">
-          {conversations.length === 0 ? (
+          {!conversations || conversations.length === 0 ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -73,13 +84,13 @@ export default function Messages() {
             </motion.div>
           ) : (
             <div className="space-y-3">
-              {conversations.map((conversation, index) => (
+              {conversations?.map((conversation, index) => (
                 <motion.div
                   key={conversation.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  onClick={() => navigate(`/conversation/${conversation.id}`)}
+                  onClick={() => handleConversationClick(conversation.id)}
                   className="p-4 rounded-2xl cursor-pointer transition-all hover:opacity-90"
                   style={{
                     background: 'var(--lala-card)',

@@ -6,10 +6,13 @@ import { supabase } from '../../lib/supabase';
 import { openCenteredPopup } from '../lib/oauthPopup';
 import { GoogleIcon } from './AuthShared.tsx';
 import { useApp } from '../context/AppContext';
+import { useLanguage } from '../context/LanguageContext';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 
 export default function Signup() {
   const navigate = useNavigate();
   const { currentUser } = useApp();
+  const { t } = useLanguage();
   const [gLoading, setGLoading] = useState(false);
   const [gError, setGError] = useState('');
 
@@ -80,6 +83,11 @@ export default function Signup() {
         }} />
 
         <div className="relative z-10 flex flex-col flex-1 px-8 pt-16 pb-10">
+          {/* Language Switcher */}
+          <div className="flex justify-end mb-4">
+            <LanguageSwitcher compact />
+          </div>
+
           {/* Back arrow to Splash */}
           <button
             onClick={() => navigate('/')}
@@ -87,7 +95,7 @@ export default function Signup() {
             style={{ color: 'var(--lala-soft)' }}
           >
             <span style={{ fontSize: 18 }}>←</span>
-            <span>Back</span>
+            <span>{t('auth.back')}</span>
           </button>
 
           {/* Logo */}
@@ -97,10 +105,10 @@ export default function Signup() {
               <span style={{ fontFamily: 'var(--font-playfair)', fontSize: 28, fontWeight: 900, color: 'var(--lala-night)' }}>L</span>
             </div>
             <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: 32, fontWeight: 900, color: 'var(--lala-white)' }}>
-              Join LALA Kenya
+              {t('auth.join_lala_kenya')}
             </h1>
             <p className="text-[15px] mt-2" style={{ color: 'var(--lala-muted)' }}>
-              How would you like to use LALA?
+              {t('auth.how_use_lala')}
             </p>
           </motion.div>
 
@@ -123,10 +131,10 @@ export default function Signup() {
               </div>
               <div>
                 <div className="text-[18px]" style={{ fontFamily: 'var(--font-playfair)', fontWeight: 800, color: 'var(--lala-white)' }}>
-                  I'm a Guest
+                  {t('auth.im_guest')}
                 </div>
                 <div className="text-[13px]" style={{ color: 'var(--lala-muted)' }}>
-                  Find and book stays
+                  {t('auth.find_book_stays')}
                 </div>
               </div>
               <div className="ml-auto text-[20px]" style={{ color: 'var(--lala-gold)' }}>→</div>
@@ -160,7 +168,7 @@ export default function Signup() {
             }}
           >
             {gLoading ? <div className="w-5 h-5 rounded-full border-2 border-gray-300 border-t-blue-500 animate-spin" /> : <GoogleIcon />}
-            {gLoading ? 'Opening Google...' : 'Continue with Google (Guest)'}
+            {gLoading ? t('auth.opening_google') : `${t('auth.continue_with_google')} (${t('auth.im_guest')})`}
           </motion.button>
 
           {!!gError && (
@@ -188,10 +196,10 @@ export default function Signup() {
               </div>
               <div>
                 <div className="text-[18px]" style={{ fontFamily: 'var(--font-playfair)', fontWeight: 800, color: 'var(--lala-white)' }}>
-                  I'm a Host
+                  {t('auth.im_host')}
                 </div>
                 <div className="text-[13px]" style={{ color: 'var(--lala-muted)' }}>
-                  List your space & earn
+                  {t('auth.list_space_earn')}
                 </div>
               </div>
               <div className="ml-auto text-[20px]" style={{ color: 'var(--lala-gold)' }}>→</div>
@@ -215,7 +223,7 @@ export default function Signup() {
           >
             <div>
               <span className="text-[14px]" style={{ color: 'var(--lala-muted)' }}>
-                Already have an account?{' '}
+                {t('auth.already_have_account')}{' '}
               </span>
               <button
                 onClick={() => navigate('/login')}
@@ -228,7 +236,7 @@ export default function Signup() {
                   fontSize: 14,
                 }}
               >
-                Sign in
+                {t('auth.sign_in')}
               </button>
             </div>
             <button
@@ -236,7 +244,7 @@ export default function Signup() {
               className="border-none bg-transparent cursor-pointer text-[13px]"
               style={{ color: 'var(--lala-soft)' }}
             >
-              Or continue as guest – Browse properties →
+              {t('auth.continue_as_guest')}
             </button>
           </motion.div>
         </div>
