@@ -12,6 +12,7 @@ export default function Trips() {
   const navigate = useNavigate();
   const { createConversation, properties, currentUser } = useApp();
   const [bookings, setBookings] = useState<any[]>([]);
+  const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const todayStr = new Date().toISOString().slice(0, 10);
 
@@ -19,6 +20,7 @@ export default function Trips() {
     async function fetchBookings() {
       if (!currentUser?.id) {
         setBookings([]);
+        setHistory([]);
         setLoading(false);
         return;
       }
@@ -31,22 +33,33 @@ export default function Trips() {
       if (error) {
         console.error(error);
         setBookings([]);
+        setHistory([]);
       } else {
         const today = new Date().toISOString().slice(0, 10);
-        const mapped = (data || [])
-          .filter(b => (b.check_in as string) >= today)
-          .map(b => ({
-            id: b.id,
-            propertyId: b.property_id,
-            propertyTitle: b.property_title,
-            propertyLocation: b.property_location,
-            checkIn: b.check_in,
-            checkOut: b.check_out,
-            nights: b.nights,
-            totalAmount: b.total_amount,
-            status: b.booking_status,
-          }));
-        setBookings(mapped);
+        const allMapped = (data || []).map((b: any) => ({
+          id: b.id,
+          propertyId: b.property_id,
+          propertyTitle: b.property_title,
+          propertyLocation: b.property_location,
+          checkIn: b.check_in,
+          checkOut: b.check_out,
+          nights: b.nights,
+          totalAmount: b.total_amount,
+          status: b.booking_status,
+        }));
+        const upcoming = allMapped.filter(
+          (b: any) => b.status !== 'cancelled' && (b.checkIn as string) >= today
+        );
+        const past = allMapped
+          .filter(
+            (b: any) =>
+              b.status === 'completed' ||
+              ((b.checkOut as string) < today &&
+                (b.status === 'in_stay' || b.status === 'confirmed' || b.status === 'completed'))
+          )
+          .sort((a: any, b: any) => (b.checkOut as string).localeCompare(a.checkOut as string));
+        setBookings(upcoming);
+        setHistory(past);
       }
       setLoading(false);
     }
@@ -54,7 +67,7 @@ export default function Trips() {
   }, [currentUser?.id]);
 
   const handleContactHost = (booking: any) => {
-    const property = properties.find(p => p.id === booking.propertyId);
+    const property = properties.find((p: any) => p.id === booking.propertyId);
     if (property) {
       const conversationId = createConversation(
         booking,
@@ -240,6 +253,62 @@ export default function Trips() {
               </div>
             </motion.div>
           ))}
+
+          {history.length > 0 && (
+            <div className="mt-6">
+              <div
+                className="text-[18px] mb-3"
+                style={{ fontFamily: 'var(--font-playfair)', fontWeight: 800, color: 'var(--lala-white)' }}
+              >
+                Past Stays
+              </div>
+              {history.map((stay, idx) => (
+                <motion.div
+                  key={`hist-${stay.id}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.08 }}
+                  className="rounded-[16px] p-4 mb-3"
+                  style={{ background: 'var(--lala-card)', border: '1px solid var(--lala-border)' }}
+                >
+                  <div
+                    className="text-[14px] mb-1"
+                    style={{ fontWeight: 700, color: 'var(--lala-white)' }}
+                  >
+                    {stay.propertyTitle}
+                  </div>
+                  <div
+                    className="text-[12px] mb-2"
+                    style={{ color: 'var(--lala-muted)' }}
+                  >
+                    📍 {stay.propertyLocation}
+                  </div>
+                  <div
+                    className="text-[12px]"
+                    style={{ color: 'var(--lala-soft)' }}
+                  >
+                    Stayed: {stay.checkIn} – {stay.checkOut} ({stay.nights} {stay.nights === 1 ? 'night' : 'nights'})
+                  </div>
+                  <div className="flex items-center gap-2 mt-3">
+                    <button
+                      onClick={() => navigate(`/property/${stay.propertyId}`)}
+                      className="px-3 py-1.5 rounded-[10px] border-none cursor-pointer text-[12px]"
+                      style={{ background: 'var(--lala-card)', border: '1px solid var(--lala-border)', color: 'var(--lala-white)' }}
+                    >
+                      Book Again
+                    </button>
+                    <button
+                      onClick={() => navigate(`/property/${stay.propertyId}`)}
+                      className="text-[12px] border-none bg-transparent cursor-pointer"
+                      style={{ color: 'var(--lala-gold)', fontWeight: 700 }}
+                    >
+                      View details →
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
       <BottomNav />

@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Property, User, Booking, Conversation, Message, CallStatus } from '../types';
 import { supabase } from '../../lib/supabase';
+import { demoProperties } from '../mock/properties';
 
 interface AppContextType {
   properties: Property[];
@@ -77,7 +78,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     getUser();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event: string, session: any) => {
       if (!mounted) return;
       if (_event === 'SIGNED_OUT') {
         clearState();
@@ -140,7 +141,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Properties fetch error:', error.message);
+        setProperties(demoProperties);
         setLoading(false);
         return;
       }

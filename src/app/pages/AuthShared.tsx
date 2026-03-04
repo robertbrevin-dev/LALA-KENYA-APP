@@ -206,7 +206,7 @@ export function OtpRow({ otp, onChange, idPrefix, accentColor }: OtpRowProps) {
       {otp.map((val, i) => (
         <input
           key={`${idPrefix}-${i}`}
-          ref={(el) => (inputsRef.current[i] = el)}
+          ref={(el) => { inputsRef.current[i] = el; }}
           type="tel"
           inputMode="numeric"
           maxLength={1}

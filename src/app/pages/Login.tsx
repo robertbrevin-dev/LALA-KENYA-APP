@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { supabase } from '../../lib/supabase';
+import { supabase, isAuthEnabled } from '../../lib/supabase';
 import BackRefreshBar from '../components/BackRefreshBar';
 import { useApp } from '../context/AppContext';
 import { COUNTRY_CODES, CountryCode, GoogleIcon, CountryPicker, OtpRow } from './AuthShared.tsx';
 import { openCenteredPopup } from '../lib/oauthPopup';
+import AuthDisabledBanner from '../components/AuthDisabledBanner';
 
 type Tab = 'email' | 'phone';
 
@@ -63,7 +64,7 @@ export default function Login() {
 
   // Google callback
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
       if (event === 'SIGNED_IN' && session?.user) {
         const u = session.user; const m = u.user_metadata;
         await supabase.from('profiles').upsert({
@@ -151,11 +152,12 @@ export default function Login() {
             <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: 28, fontWeight: 900, color: 'white' }}>Welcome back</h1>
             <p className="text-[13px] mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Sign in to your LALA account</p>
           </motion.div>
+          {!isAuthEnabled && <AuthDisabledBanner />}
 
           {/* ── Google ── */}
           <motion.button
             initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 }}
-            onClick={handleGoogle} disabled={gLoading}
+            onClick={handleGoogle} disabled={gLoading || !isAuthEnabled}
             whileTap={{ scale: 0.97 }}
             className="w-full py-3.5 rounded-[16px] border-none cursor-pointer mb-2 flex items-center justify-center gap-3"
             style={{ background: 'white', color: '#111', fontWeight: 700, fontSize: 14, boxShadow: '0 4px 24px rgba(0,0,0,0.5)', opacity: gLoading ? 0.8 : 1 }}>
@@ -239,7 +241,7 @@ export default function Login() {
                   )}
                 </AnimatePresence>
 
-                <motion.button whileTap={{ scale: 0.98 }} onClick={handleEmailLogin} disabled={loading}
+                <motion.button whileTap={{ scale: 0.98 }} onClick={handleEmailLogin} disabled={loading || !isAuthEnabled}
                   className="w-full py-4 rounded-[16px] border-none cursor-pointer font-bold text-[15px]"
                   style={{ background: loading ? 'rgba(255,255,255,0.1)' : `linear-gradient(135deg, ${GOLD}, #C8903D)`, color: loading ? 'rgba(255,255,255,0.4)' : '#0D0F14' }}>
                   {loading ? 'Signing in...' : 'Sign In →'}
@@ -289,7 +291,7 @@ export default function Login() {
                   )}
                 </AnimatePresence>
 
-                <motion.button whileTap={{ scale: 0.98 }} onClick={handleSendOTP} disabled={loading}
+                <motion.button whileTap={{ scale: 0.98 }} onClick={handleSendOTP} disabled={loading || !isAuthEnabled}
                   className="w-full py-4 rounded-[16px] border-none cursor-pointer font-bold text-[15px]"
                   style={{ background: loading ? 'rgba(255,255,255,0.1)' : `linear-gradient(135deg, ${GOLD}, #C8903D)`, color: loading ? 'rgba(255,255,255,0.4)' : '#0D0F14' }}>
                   {loading ? 'Sending SMS...' : 'Send Code via SMS 📲'}
