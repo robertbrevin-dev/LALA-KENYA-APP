@@ -146,7 +146,18 @@ export default function Login() {
 
           {/* Language Switcher */}
           <div className="flex justify-end mb-4">
-            <LanguageSwitcher compact />
+            <select
+              onChange={(e) => window.location.href = `?lang=${e.target.value}`}
+              className="text-[12px] px-2 py-1 rounded-[8px] border-none cursor-pointer"
+              style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.5)' }}
+              defaultValue={new URLSearchParams(window.location.search).get('lang') || 'en'}
+            >
+              <option value="en">🇬🇧 EN</option>
+              <option value="sw">🇰🇪 SW</option>
+            </select>
+          </div>
+          <div className="flex justify-end mb-4">
+            {/* LanguageSwitcher component removed – already have language select above */}
           </div>
 
           {/* Logo */}
@@ -158,7 +169,16 @@ export default function Login() {
             <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: 28, fontWeight: 900, color: 'white' }}>{t('auth.welcome_back')}</h1>
             <p className="text-[13px] mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>{t('auth.sign_in_to_account')}</p>
           </motion.div>
-          {!isAuthEnabled && <AuthDisabledBanner />}
+          {!isAuthEnabled && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="px-4 py-3 rounded-[12px] mb-4 text-[13px] flex items-start gap-2"
+              style={{ background: 'rgba(255,184,77,0.08)', border: '1px solid rgba(255,184,77,0.2)', color: '#FFB84D' }}
+            >
+              ⚠️ Authentication is currently disabled. Enable it in Supabase to sign in.
+            </motion.div>
+          )}
 
           {/* ── Google ── */}
           <motion.button
@@ -181,15 +201,15 @@ export default function Login() {
           {/* ── Tab toggle ── */}
           <div className="flex rounded-[14px] p-1 mb-5"
             style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-            {(['email', 'phone'] as Tab[]).map(t => (
-              <button key={t}
-                onClick={() => { setTab(t); reset(); setPhoneStep('input'); setOtp(['','','','','','']); }}
+            {(['email', 'phone'] as Tab[]).map((tabOpt) => (
+              <button key={tabOpt}
+                onClick={() => { setTab(tabOpt); reset(); setPhoneStep('input'); setOtp(['','','','','','']); }}
                 className="flex-1 py-2.5 rounded-[11px] border-none cursor-pointer text-[13px] font-bold flex items-center justify-center gap-1.5 transition-all"
                 style={{
-                  background: tab === t ? GOLD : 'transparent',
-                  color: tab === t ? '#0D0F14' : 'rgba(255,255,255,0.4)',
+                  background: tab === tabOpt ? GOLD : 'transparent',
+                  color: tab === tabOpt ? '#0D0F14' : 'rgba(255,255,255,0.4)',
                 }}>
-                {t === 'email' ? `✉️ ${t('auth.email')}` : `📱 ${t('auth.phone')}`}
+                {tabOpt === 'email' ? `✉️ ${t('auth.email')}` : `📱 ${t('auth.phone')}`}
               </button>
             ))}
           </div>
