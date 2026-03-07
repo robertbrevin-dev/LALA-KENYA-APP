@@ -93,7 +93,7 @@ export default function GuestLogin() {
     console.log('signIn result:', JSON.stringify({error: authError?.message, user: data?.user?.email}));
     if (authError) { setError(authError.message); setLoading(false); return; }
 
-    await refreshUser();
+    await refreshUser('guest');
     navigate('/home');
   };
 

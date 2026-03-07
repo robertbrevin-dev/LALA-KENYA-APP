@@ -76,17 +76,17 @@ const LANDMARKS = [
   { name: 'Kisumu CBD', short: 'Kisumu CBD', lat: -0.0917, lng: 34.7680, icon: '🏙️', cat: 'area', color: '#FD79A8' },
   { name: 'Nakuru CBD', short: 'Nakuru CBD', lat: -0.3031, lng: 36.0800, icon: '🏙️', cat: 'area', color: '#FD79A8' },
   { name: 'Eldoret CBD', short: 'Eldoret CBD', lat: 0.5200, lng: 35.2698, icon: '🏙️', cat: 'area', color: '#FD79A8' },
-  { name: 'KFC Westlands Nairobi', short: 'KFC Westlands', lat: -1.2660, lng: 36.8040, icon: '🍗', cat: 'fastfood', color: '#E17055' },
-  { name: 'KFC Junction Mall', short: 'KFC Junction', lat: -1.3005, lng: 36.7760, icon: '🍗', cat: 'fastfood', color: '#E17055' },
-  { name: "McDonald's Westgate", short: "McDonald's", lat: -1.2576, lng: 36.8060, icon: '🍔', cat: 'fastfood', color: '#E17055' },
-  { name: 'Burger King Two Rivers', short: 'Burger King', lat: -1.2073, lng: 36.7921, icon: '🍔', cat: 'fastfood', color: '#E17055' },
-  { name: 'Chicken Inn CBD', short: 'Chicken Inn CBD', lat: -1.2845, lng: 36.8205, icon: '🍗', cat: 'fastfood', color: '#E17055' },
-  { name: 'KFC Mombasa', short: 'KFC Mombasa', lat: -4.0500, lng: 39.6630, icon: '🍗', cat: 'fastfood', color: '#E17055' },
-  { name: 'Java House Westlands', short: 'Java Westlands', lat: -1.2646, lng: 36.8042, icon: '☕', cat: 'cafe', color: '#FDCB6E' },
-  { name: 'Java House Junction', short: 'Java Junction', lat: -1.3002, lng: 36.7757, icon: '☕', cat: 'cafe', color: '#FDCB6E' },
-  { name: 'Java House CBD', short: 'Java CBD', lat: -1.2855, lng: 36.8195, icon: '☕', cat: 'cafe', color: '#FDCB6E' },
-  { name: 'Artcaffe Westgate', short: 'Artcaffe', lat: -1.2579, lng: 36.8056, icon: '☕', cat: 'cafe', color: '#FDCB6E' },
-  { name: 'Dormans Coffee Westlands', short: 'Dormans', lat: -1.2648, lng: 36.8040, icon: '☕', cat: 'cafe', color: '#FDCB6E' },
+  { name: 'KFC Westlands Nairobi', short: 'KFC Westlands', lat: -1.2660, lng: 36.8040, icon: '🍗', cat: 'stays', color: '#E17055' },
+  { name: 'KFC Junction Mall', short: 'KFC Junction', lat: -1.3005, lng: 36.7760, icon: '🍗', cat: 'stays', color: '#E17055' },
+  { name: "McDonald's Westgate", short: "McDonald's", lat: -1.2576, lng: 36.8060, icon: '🍔', cat: 'stays', color: '#E17055' },
+  { name: 'Burger King Two Rivers', short: 'Burger King', lat: -1.2073, lng: 36.7921, icon: '🍔', cat: 'stays', color: '#E17055' },
+  { name: 'Chicken Inn CBD', short: 'Chicken Inn CBD', lat: -1.2845, lng: 36.8205, icon: '🍗', cat: 'stays', color: '#E17055' },
+  { name: 'KFC Mombasa', short: 'KFC Mombasa', lat: -4.0500, lng: 39.6630, icon: '🍗', cat: 'stays', color: '#E17055' },
+  { name: 'Java House Westlands', short: 'Java Westlands', lat: -1.2646, lng: 36.8042, icon: '☕', cat: 'education', color: '#FDCB6E' },
+  { name: 'Java House Junction', short: 'Java Junction', lat: -1.3002, lng: 36.7757, icon: '☕', cat: 'education', color: '#FDCB6E' },
+  { name: 'Java House CBD', short: 'Java CBD', lat: -1.2855, lng: 36.8195, icon: '☕', cat: 'education', color: '#FDCB6E' },
+  { name: 'Artcaffe Westgate', short: 'Artcaffe', lat: -1.2579, lng: 36.8056, icon: '☕', cat: 'education', color: '#FDCB6E' },
+  { name: 'Dormans Coffee Westlands', short: 'Dormans', lat: -1.2648, lng: 36.8040, icon: '☕', cat: 'education', color: '#FDCB6E' },
   { name: 'Carnivore Restaurant Nairobi', short: 'Carnivore', lat: -1.3225, lng: 36.8042, icon: '🍽️', cat: 'restaurant', color: '#FDCB6E' },
   { name: 'The Talisman Karen', short: 'Talisman', lat: -1.3188, lng: 36.7158, icon: '🍽️', cat: 'restaurant', color: '#FDCB6E' },
   { name: 'Tamarind Nairobi', short: 'Tamarind NBI', lat: -1.2869, lng: 36.8178, icon: '🍽️', cat: 'restaurant', color: '#FDCB6E' },
@@ -128,13 +128,13 @@ const LANDMARKS = [
   { name: 'Naivas Karen Nairobi', short: 'Naivas Karen', lat: -1.3238, lng: 36.7154, icon: '🛒', cat: 'supermarket', color: '#00B894' },
   { name: 'Naivas Mombasa', short: 'Naivas MBA', lat: -4.0500, lng: 39.6640, icon: '🛒', cat: 'supermarket', color: '#00B894' },
   { name: 'Naivas Kisumu', short: 'Naivas Kisumu', lat: -0.0917, lng: 34.7680, icon: '🛒', cat: 'supermarket', color: '#00B894' },
-  { name: 'Shell Westlands', short: 'Shell Westlands', lat: -1.2668, lng: 36.8028, icon: '⛽', cat: 'petrol', color: '#FDCB6E' },
-  { name: 'Total Energies Kilimani', short: 'Total Kilimani', lat: -1.2916, lng: 36.7823, icon: '⛽', cat: 'petrol', color: '#FDCB6E' },
-  { name: 'Kenol CBD Nairobi', short: 'Kenol CBD', lat: -1.2850, lng: 36.8240, icon: '⛽', cat: 'petrol', color: '#FDCB6E' },
-  { name: 'Nairobi Central Police Station', short: 'Central Police', lat: -1.2875, lng: 36.8232, icon: '🚓', cat: 'safety', color: '#74B9FF' },
-  { name: 'Kilimani Police Station', short: 'Kilimani Police', lat: -1.2940, lng: 36.7830, icon: '🚓', cat: 'safety', color: '#74B9FF' },
-  { name: 'Mombasa Central Police', short: 'Mombasa Police', lat: -4.0614, lng: 39.6644, icon: '🚓', cat: 'safety', color: '#74B9FF' },
-  { name: 'Kisumu Central Police', short: 'Kisumu Police', lat: -0.0917, lng: 34.7680, icon: '🚓', cat: 'safety', color: '#74B9FF' },
+  { name: 'Shell Westlands', short: 'Shell Westlands', lat: -1.2668, lng: 36.8028, icon: '⛽', cat: 'nature', color: '#FDCB6E' },
+  { name: 'Total Energies Kilimani', short: 'Total Kilimani', lat: -1.2916, lng: 36.7823, icon: '⛽', cat: 'nature', color: '#FDCB6E' },
+  { name: 'Kenol CBD Nairobi', short: 'Kenol CBD', lat: -1.2850, lng: 36.8240, icon: '⛽', cat: 'nature', color: '#FDCB6E' },
+  { name: 'Nairobi Central Police Station', short: 'Central Police', lat: -1.2875, lng: 36.8232, icon: '🚓', cat: 'area', color: '#74B9FF' },
+  { name: 'Kilimani Police Station', short: 'Kilimani Police', lat: -1.2940, lng: 36.7830, icon: '🚓', cat: 'area', color: '#74B9FF' },
+  { name: 'Mombasa Central Police', short: 'Mombasa Police', lat: -4.0614, lng: 39.6644, icon: '🚓', cat: 'area', color: '#74B9FF' },
+  { name: 'Kisumu Central Police', short: 'Kisumu Police', lat: -0.0917, lng: 34.7680, icon: '🚓', cat: 'area', color: '#74B9FF' },
   { name: 'Jamia Mosque Nairobi CBD', short: 'Jamia Mosque', lat: -1.2830, lng: 36.8209, icon: '🕌', cat: 'cultural', color: '#A29BFE' },
   { name: 'All Saints Cathedral Nairobi', short: 'All Saints', lat: -1.2864, lng: 36.8222, icon: '⛪', cat: 'cultural', color: '#A29BFE' },
 ];
@@ -262,11 +262,7 @@ export default function MapPage() {
   // Set panel based on user role
   useEffect(() => {
     console.log('🗺️ Map - User role check:', { currentUser, role: currentUser?.role });
-    if (currentUser?.role === 'host') {
-      // host redirected
-    } else {
-      // guest stays
-    }
+    // role handled by BottomNav navType prop
   }, [currentUser]);
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -352,8 +348,9 @@ export default function MapPage() {
       setRouteInfo({ distKm, durationMin, steps });
       const coords: [number, number][] = route.geometry.coordinates.map((c: number[]) => [c[1], c[0]]);
       routeRef.current = L.featureGroup([
-        L.polyline(coords, { color: 'rgba(0,0,0,0.25)', weight: 9, opacity: 1, lineCap: 'round', lineJoin: 'round' }),
-        L.polyline(coords, { color: TRAVEL[mode].color, weight: 6, opacity: 0.95, lineCap: 'round', lineJoin: 'round' }),
+        L.polyline(coords, { color: 'rgba(0,0,0,0.4)', weight: 12, opacity: 1, lineCap: 'round', lineJoin: 'round' }),
+        L.polyline(coords, { color: '#E8B86D', weight: 7, opacity: 1, lineCap: 'round', lineJoin: 'round' }),
+        L.polyline(coords, { color: '#FFF9E6', weight: 2, opacity: 0.7, lineCap: 'round', lineJoin: 'round', dashArray: '8,12' }),
       ]).addTo(mapInstance.current);
       mapInstance.current.fitBounds(routeRef.current.getBounds(), { padding: [100, 100] });
     } catch {
@@ -370,12 +367,21 @@ export default function MapPage() {
     }
   }, [mode]);
 
+  useEffect(() => {
+    const target = targetCoords || (searchPin ? { lat: searchPin.lat, lng: searchPin.lng } : null);
+    if (!target) { if (routeRef.current && mapInstance.current) { try { mapInstance.current.removeLayer(routeRef.current); routeRef.current = null; } catch {} } return; }
+    if (!loaded) return;
+    const from = userPos || (mapInstance.current ? { lat: mapInstance.current.getCenter().lat, lng: mapInstance.current.getCenter().lng } : null);
+    if (from) drawRoute(from, target);
+  }, [targetCoords, searchPin, loaded]);
+
   const startNav = useCallback(() => {
     const effectiveTarget = targetCoords || (searchPin ? { lat: searchPin.lat, lng: searchPin.lng } : null);
     if (!effectiveTarget) return;
     setNavigating(true);
     setShowTips(true);
-    if (userPos) drawRoute(userPos, effectiveTarget);
+    const fromPos = userPos || (mapInstance.current ? { lat: mapInstance.current.getCenter().lat, lng: mapInstance.current.getCenter().lng } : null);
+    if (fromPos) drawRoute(fromPos, effectiveTarget);
     watchIdRef.current = navigator.geolocation?.watchPosition(
       pos => {
         const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
@@ -646,6 +652,7 @@ export default function MapPage() {
   };
 
   const jumpToResult = (result: any) => {
+    console.log('JUMP TO:', result.name, result.lat, result.lng, 'map:', !!mapInstance.current);
     if (!mapInstance.current) return;
     if (result.type === 'property' && result.prop) {
       setSelected(result.prop); setSelectedLandmark(null);
@@ -683,8 +690,15 @@ export default function MapPage() {
   const [nearMeActive, setNearMeActive] = useState<string | null>(null);
 
   const doFindNearest = (cat: string, pos: { lat: number; lng: number }) => {
+    if (cat === 'stays') {
+      if (!propList.length) { setNearMeActive(null); return; }
+      const nearest = propList.reduce((best:any,p:any) => haversineKm(pos,p.coords)<haversineKm(pos,best.coords)?p:best);
+      setSelected(nearest); setSelectedLandmark(null);
+      mapInstance.current?.flyTo([nearest.coords.lat,nearest.coords.lng],15,{duration:1.4});
+      setTimeout(()=>setNearMeActive(null),2000); return;
+    }
     const matches = LANDMARKS.filter(l => l.cat === cat);
-    if (!matches.length) { setNearMeActive(null); return; }
+    if (!matches.length) { setTimeout(() => setNearMeActive(null), 500); return; }
     const nearest = matches.reduce((best, l) =>
       haversineKm(pos, { lat: l.lat, lng: l.lng }) < haversineKm(pos, { lat: best.lat, lng: best.lng }) ? l : best
     );
@@ -696,21 +710,25 @@ export default function MapPage() {
 
   const findNearest = (cat: string) => {
     setNearMeActive(cat);
-    if (userPos) { doFindNearest(cat, userPos); return; }
-    navigator.geolocation?.getCurrentPosition(
-      pos => { const p = { lat: pos.coords.latitude, lng: pos.coords.longitude }; setUserPos(p); doFindNearest(cat, p); },
-      () => setNearMeActive(null),
-      { enableHighAccuracy: true, timeout: 8000 }
-    );
+    const pos = userPos || (mapInstance.current ? { lat: mapInstance.current.getCenter().lat, lng: mapInstance.current.getCenter().lng } : { lat: -1.2921, lng: 36.8219 });
+    if (['nightlife','restaurant','supermarket'].includes(cat)) {
+      const q = cat === 'nightlife' ? 'nightclub' : cat === 'restaurant' ? 'restaurant' : 'supermarket';
+      fetch('https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(q+' near Nairobi Kenya')+'&format=json&limit=1',{headers:{'Accept-Language':'en','User-Agent':'LalaKenyaApp/1.0'}})
+        .then(r=>r.json()).then(data=>{
+          if(data?.length){ const r=data[0]; mapInstance.current?.flyTo([parseFloat(r.lat),parseFloat(r.lon)],16,{duration:1.4}); }
+          setTimeout(()=>setNearMeActive(null),2000);
+        }).catch(()=>setTimeout(()=>setNearMeActive(null),500));
+      return;
+    }
+    doFindNearest(cat, pos);
   };
-
   const cardOpen = (selected || selectedLandmark || searchPin) && !navigating;
   const bottomOffset = cardOpen ? 360 : 90;
 
   return (
     <PhoneFrame>
       <div className="flex-1 relative overflow-hidden flex flex-col" style={{ background: isDark ? '#0D0F14' : '#f5f5f0' }}>
-        <div className="absolute top-0 left-0 right-0 z-[1001] pt-10 px-4 pb-3"
+        <div className="absolute top-0 left-0 right-0 z-[1010] pt-10 px-4 pb-3"
           style={{ background: isDark ? 'linear-gradient(180deg,rgba(13,15,20,0.98) 78%,transparent)' : 'linear-gradient(180deg,rgba(255,255,250,0.98) 78%,transparent)', backdropFilter: 'blur(10px)' }}>
           <div className="flex items-center justify-between mb-2.5">
             <div>
@@ -750,6 +768,7 @@ export default function MapPage() {
                     searchDebounceRef.current = setTimeout(() => globalSearch(e.target.value), 350);
                   }}
                   onFocus={() => setSearchOpen(true)}
+                  onKeyDown={e => { if (e.key === 'Enter' && searchResults.length > 0) { jumpToResult(searchResults[0]); } else if (e.key === 'Enter' && search.trim()) { globalSearch(search); } }}
                   placeholder="Search anywhere — Mombasa, Eiffel Tower, hospitals..."
                   className="flex-1 bg-transparent outline-none border-none text-[13px]"
                   style={{ color: isDark ? '#F9FAFB' : '#0D0F14', minWidth: 0 }} />
@@ -766,7 +785,7 @@ export default function MapPage() {
             </div>
 
             {searchOpen && (search.length >= 2 || recentSearches.length > 0) && (
-              <div className="absolute left-0 right-0 z-[1010] rounded-[16px] overflow-hidden mt-1 max-h-[340px] overflow-y-auto"
+              <div className="absolute left-0 right-0 z-[1020] rounded-[16px] overflow-hidden mt-1 max-h-[340px] overflow-y-auto search-results-dropdown"
                 style={{ background: isDark ? '#1A1D27' : 'white', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)', boxShadow: '0 16px 40px rgba(0,0,0,0.4)' }}>
                 {search.length < 2 && recentSearches.length > 0 && (
                   <div>
@@ -817,8 +836,8 @@ export default function MapPage() {
                       <div>
                         <div className="px-3 py-1.5 text-[10px] font-bold" style={{ color: '#74B9FF', letterSpacing: 1 }}>🌍 GLOBAL RESULTS</div>
                         {searchResults.filter((r: any) => r.type === 'nominatim').map((r: any, i: number) => (
-                          <div key={i} className="w-full px-3 py-2 flex items-center gap-2"
-                            style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                          <div key={i} className="w-full px-3 py-2 flex items-center gap-2" onClick={() => jumpToResult(r)}
+                            style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer' }}>
                             <div className="w-8 h-8 rounded-[10px] flex items-center justify-center flex-shrink-0 text-[15px]"
                               style={{ background: 'rgba(116,185,255,0.15)' }}>{r.icon}</div>
                             <button className="flex-1 min-w-0 text-left border-none bg-transparent cursor-pointer py-1" onClick={() => jumpToResult(r)}>
@@ -902,13 +921,13 @@ export default function MapPage() {
           <div className="flex gap-1.5 overflow-x-auto mt-2 pb-1" style={{ scrollbarWidth: 'none' }}>
             <span className="text-[10px] font-bold flex-shrink-0 flex items-center px-1" style={{ color: isDark ? '#555' : '#aaa' }}>NEAR ME:</span>
             {([
-              { cat: 'hospital',  icon: '🏥', label: 'Hospital', color: '#FF6B6B' },
-              { cat: 'safety',    icon: '🚓', label: 'Police',   color: '#74B9FF' },
-              { cat: 'petrol',    icon: '⛽', label: 'Petrol',   color: '#FDCB6E' },
-              { cat: 'transport', icon: '✈️', label: 'Airport',  color: '#A29BFE' },
-              { cat: 'cafe',      icon: '☕', label: 'Cafe',     color: '#FDCB6E' },
-              { cat: 'fastfood',  icon: '🍗', label: 'Food',     color: '#E17055' },
-              { cat: 'mall',      icon: '🛍️', label: 'Mall',     color: '#FF9F43' },
+              { cat: 'stays',      label: 'BnBs',      color: '#E8B86D' },
+              { cat: 'nightlife',  label: 'Nightlife', color: '#A29BFE' },
+              { cat: 'restaurant', label: 'Food',      color: '#E17055' },
+              { cat: 'hospital',   label: 'Hospital',  color: '#FF6B6B' },
+              { cat: 'transport',  label: 'Airport',   color: '#74B9FF' },
+              { cat: 'mall',       label: 'Mall',      color: '#FF9F43' },
+              { cat: 'area',       label: 'Areas',     color: '#FD79A8' },
             ] as const).map(q => (
               <button key={q.cat}
                 onClick={() => findNearest(q.cat)}
@@ -919,13 +938,13 @@ export default function MapPage() {
                   border: nearMeActive === q.cat ? 'none' : isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(13,15,20,0.1)',
                   transition: 'all 0.2s',
                 }}>
-                {q.icon} {nearMeActive === q.cat ? 'Finding...' : q.label}
+                {nearMeActive === q.cat ? 'Finding...' : q.label}
               </button>
             ))}
           </div>
         </div>
         {searchOpen && (
-          <div className="absolute inset-0 z-[1009]" onClick={() => { setSearchOpen(false); setSearchResults([]); }} />
+          <div className="absolute inset-0 z-[1009]" onClick={() => { setSearchOpen(false); setSearchResults([]); }} style={{ pointerEvents: searchOpen ? 'auto' : 'none', zIndex: 999 }} />
         )}
         <div ref={mapRef} className="absolute inset-0" style={{ zIndex: 0, touchAction: 'none' }} />
 
@@ -1059,7 +1078,7 @@ export default function MapPage() {
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 30 }}
               className="absolute left-3 right-3 z-[1002]" style={{ bottom: 76 }}>
               <div className="rounded-[22px] overflow-hidden"
-                style={{ background: 'rgba(13,15,20,0.97)', border: `1.5px solid ${selectedLandmark.color}40`, backdropFilter: 'blur(30px)', boxShadow: '0 24px 60px rgba(0,0,0,0.7)' }}>
+                style={{ background: isDark ? 'rgba(13,15,20,0.97)' : 'rgba(255,255,255,0.97)', border: `1.5px solid ${selectedLandmark.color}40`, backdropFilter: 'blur(30px)', boxShadow: '0 24px 60px rgba(0,0,0,0.7)' }}>
                 <div className="p-4">
                   <div className="flex items-start gap-3 mb-3">
                     <div className="w-14 h-14 rounded-[14px] flex items-center justify-center text-[28px] flex-shrink-0"
@@ -1067,7 +1086,7 @@ export default function MapPage() {
                       {selectedLandmark.icon}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-[15px] font-bold mb-0.5 leading-tight" style={{ color: 'white' }}>{selectedLandmark.name}</div>
+                      <div className="text-[15px] font-bold mb-0.5 leading-tight" style={{ color: isDark ? 'white' : '#0D0F14' }}>{selectedLandmark.name}</div>
                       <div className="text-[11px] px-2 py-0.5 rounded-[20px] inline-block font-bold"
                         style={{ background: `${selectedLandmark.color}20`, color: selectedLandmark.color }}>
                         {LANDMARK_CATS.find(c => c.id === selectedLandmark.cat)?.label || selectedLandmark.cat}
@@ -1116,14 +1135,14 @@ export default function MapPage() {
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 30 }}
               className="absolute left-3 right-3 z-[1002]" style={{ bottom: 76 }}>
               <div className="rounded-[22px] overflow-hidden"
-                style={{ background: 'rgba(13,15,20,0.97)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(30px)', boxShadow: '0 24px 60px rgba(0,0,0,0.8)' }}>
+                style={{ background: isDark ? 'rgba(13,15,20,0.97)' : 'rgba(255,255,255,0.97)', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.1)', backdropFilter: 'blur(30px)', boxShadow: '0 24px 60px rgba(0,0,0,0.4)' }}>
                 <div className="p-4 flex gap-3 items-center">
                   <div className="w-[72px] h-[72px] rounded-[14px] flex items-center justify-center text-[30px] flex-shrink-0 overflow-hidden"
                     style={{ background: 'linear-gradient(135deg,rgba(232,184,109,0.15),rgba(62,207,178,0.08))' }}>
                     {selected.image?.startsWith('http') ? <img src={selected.image} alt="" className="w-full h-full object-cover" /> : selected.image || '🏢'}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-[15px] font-bold truncate mb-0.5" style={{ color: 'white' }}>{selected.title}</div>
+                    <div className="text-[15px] font-bold truncate mb-0.5" style={{ color: isDark ? 'white' : '#0D0F14' }}>{selected.title}</div>
                     <div className="text-[12px] mb-1" style={{ color: '#aaa' }}>📍 {selected.location}</div>
                     <div className="flex items-center gap-3">
                       <span className="text-[14px] font-bold" style={{ color: '#E8B86D' }}>
@@ -1275,6 +1294,7 @@ export default function MapPage() {
         )}
 
       </div>
+      {console.log("MAP BOTTOMNAV ROLE:", currentUser?.role, sessionStorage.getItem("lala-force-role"))}
       <BottomNav type={currentUser?.role === 'host' ? 'host' : 'guest'} />
     </PhoneFrame>
   );

@@ -62,6 +62,7 @@ const routes = [
       { path: 'profile/help', Component: HelpCenter },
       { path: 'profile/terms', Component: TermsAndPolicies },
       { path: 'host', Component: HostDashboard },
+      { path: 'host/map', Component: Map },
       { path: 'host/listings', Component: HostListings },
       { path: 'host/bookings', Component: HostBookings },
       { path: 'host/earnings', Component: HostEarnings },

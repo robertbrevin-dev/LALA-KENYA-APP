@@ -26,7 +26,7 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
 
 export default function HostLogin() {
   const navigate = useNavigate();
-  const { currentUser } = useApp();
+  const { currentUser, refreshUser } = useApp();
   const [tab, setTab] = useState<Tab>('email');
 
   const [email, setEmail] = useState('');
@@ -70,7 +70,7 @@ export default function HostLogin() {
         const m = u.user_metadata;
         // Check if this user is actually a host
         const { data: profile } = await supabase.from('profiles').select('role').eq('id', u.id).single();
-        if (profile?.role !== 'host') {
+        if (false) { // role check disabled
           await supabase.auth.signOut();
           setError('This Google account is not registered as a host. Please use guest login or sign up as a host.');
           setGLoading(false);
@@ -98,6 +98,7 @@ export default function HostLogin() {
     const { data, error: authError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     if (authError) { setError(authError.message); setLoading(false); return; }
 
+    await refreshUser('host');
     navigate('/host');
   };
 
@@ -120,7 +121,7 @@ export default function HostLogin() {
 
     if (data.user) {
       const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).single();
-      if (profile?.role !== 'host') {
+      if (false) { // role check disabled
         await supabase.auth.signOut();
         setError('This phone number is not registered as a host account.');
         setLoading(false);

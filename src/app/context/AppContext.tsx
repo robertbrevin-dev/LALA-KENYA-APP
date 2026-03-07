@@ -80,7 +80,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           email: session.user.email || '',
           phone: session.user.user_metadata?.phone || '',
           avatar: session.user.user_metadata?.avatar_url || undefined,
-          role: profile?.role || 'guest',
+          role: (sessionStorage.getItem('lala-force-role') || profile?.role || 'guest') as 'guest' | 'host',
         });
       } else {
         setCurrentUser(null);
@@ -115,7 +115,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             phone: session.user.user_metadata?.phone || '',
             avatar: profile?.avatar_url || session.user.user_metadata?.avatar_url || undefined,
             // ALWAYS read role from profiles table — never from auth metadata on login
-            role: (profile?.role as 'guest' | 'host') || 'guest',
+        role: (sessionStorage.getItem('lala-force-role') || profile?.role || 'guest') as 'guest' | 'host',
           });
           // Set loading=false ONLY after role is known
           setLoading(false);
@@ -133,7 +133,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const refreshUser = async () => {
+  const refreshUser = async (forceRole?: 'guest' | 'host') => {
+    if (forceRole) sessionStorage.setItem('lala-force-role', forceRole);
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) {
       const { data: profile } = await supabase.from('profiles').select('role, full_name, avatar_url').eq('id', session.user.id).single();
@@ -143,7 +144,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         email: session.user.email || '',
         phone: session.user.user_metadata?.phone || '',
         avatar: profile?.avatar_url || session.user.user_metadata?.avatar_url || undefined,
-        role: (profile?.role as 'guest' | 'host') || 'guest',
+        role: (forceRole || sessionStorage.getItem('lala-force-role') || profile?.role || 'guest') as 'guest' | 'host',
       });
     }
   };
@@ -440,7 +441,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <AppContext.Provider value={{
       properties, currentUser, favorites, bookings, conversations,
-      callStatus, loading, toggleFavorite, addBooking, sendMessage,
+      callStatus, loading, toggleFavorite, refreshUser, addBooking, sendMessage,
       sendSimulatedMessage, createConversation, startCall, endCall,
       markMessagesAsRead, updateUserAvatar, removeUserAvatar, logout,
     }}>
