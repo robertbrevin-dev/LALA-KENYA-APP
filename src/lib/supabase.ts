@@ -1,18 +1,6 @@
-// ─── Supabase Client Setup ──────────────────────────────────────────────
-import { createClient } from "@supabase/supabase-js"
+import { createClient } from '@supabase/supabase-js'
 
-// Load environment variables from Vite
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL ?? 'https://pacxvnwssberftkgoche.supabase.co'
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBhY3h2bndzc2JlcmZ0a2dvY2hlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODk5MDUsImV4cCI6MjA4Nzg2NTkwNX0.ueYNPpRHQ39hJbI0BGrfW2bMr5TcHD_EoPP87c_DzfY'
 
-// Check if both env vars are present
-const hasEnv = Boolean(supabaseUrl) && Boolean(supabaseAnonKey)
-
-// Export a boolean flag to check if auth is enabled
-export const isAuthEnabled = hasEnv
-
-// Create and export the Supabase client if env exists
-// Otherwise, export undefined to prevent runtime errors
-export const supabase = hasEnv
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : undefined
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
