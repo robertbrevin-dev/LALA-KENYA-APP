@@ -11,6 +11,7 @@ interface AppContextType {
   conversations: Conversation[];
   callStatus: CallStatus;
   loading: boolean;
+  refreshUser: () => Promise<void>;
   toggleFavorite: (propertyId: string) => void;
   addBooking: (booking: Booking) => void;
   sendMessage: (conversationId: string, text: string) => void;
@@ -91,6 +92,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event: string, session: any) => {
       if (!mounted) return;
+      console.log('AUTH EVENT:', _event, 'session:', !!session, 'user:', !!session?.user);
+      if (_event === 'INITIAL_SESSION') return;
       if (_event === 'SIGNED_OUT') {
         clearState();
         setLoading(false);
@@ -98,8 +101,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return;
       }
       if (session?.user) {
-        // Keep loading=true until role is confirmed from DB
-        setLoading(true);
         const fetchProfile = async () => {
           const { data: profile } = await supabase
             .from('profiles')
@@ -131,6 +132,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
       authListener.subscription.unsubscribe();
     };
   }, []);
+
+  const refreshUser = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      const { data: profile } = await supabase.from('profiles').select('role, full_name, avatar_url').eq('id', session.user.id).single();
+      setCurrentUser({
+        id: session.user.id,
+        name: profile?.full_name || session.user.user_metadata?.full_name || 'User',
+        email: session.user.email || '',
+        phone: session.user.user_metadata?.phone || '',
+        avatar: profile?.avatar_url || session.user.user_metadata?.avatar_url || undefined,
+        role: (profile?.role as 'guest' | 'host') || 'guest',
+      });
+    }
+  };
 
   const updateUserAvatar = async (url: string) => {
     await supabase.auth.updateUser({ data: { avatar_url: url } });

@@ -25,7 +25,10 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
 
 export default function GuestLogin() {
   const navigate = useNavigate();
-  const { currentUser } = useApp();
+  const { currentUser, loading: appLoading, refreshUser } = useApp();
+  useEffect(() => {
+    if (!appLoading && currentUser) navigate('/home');
+  }, [appLoading, currentUser]);
   const [tab, setTab] = useState<Tab>('email');
 
   const [email, setEmail] = useState('');
@@ -75,7 +78,6 @@ export default function GuestLogin() {
           avatar_url: m?.avatar_url || m?.picture || null,
           role: 'guest',
         }, { onConflict: 'id', ignoreDuplicates: true });
-        navigate('/home');
       }
     });
     return () => subscription.unsubscribe();
@@ -88,18 +90,10 @@ export default function GuestLogin() {
     if (!password) { setError('Please enter your password'); return; }
     setLoading(true); setError('');
     const { data, error: authError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    console.log('signIn result:', JSON.stringify({error: authError?.message, user: data?.user?.email}));
     if (authError) { setError(authError.message); setLoading(false); return; }
 
-    // Verify this is a guest account
-    if (data.user) {
-      const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).single();
-      if (profile?.role === 'host') {
-        await supabase.auth.signOut();
-        setError('This is a host account. Please use the host login page.');
-        setLoading(false);
-        return;
-      }
-    }
+    await refreshUser();
     navigate('/home');
   };
 

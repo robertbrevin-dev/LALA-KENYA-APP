@@ -98,16 +98,6 @@ export default function HostLogin() {
     const { data, error: authError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     if (authError) { setError(authError.message); setLoading(false); return; }
 
-    // Verify this is a host account
-    if (data.user) {
-      const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).single();
-      if (profile?.role !== 'host') {
-        await supabase.auth.signOut();
-        setError('This is a guest account. Please use the guest login page.');
-        setLoading(false);
-        return;
-      }
-    }
     navigate('/host');
   };
 
