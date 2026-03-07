@@ -1,0 +1,15 @@
+const fs = require('fs');
+let c = fs.readFileSync('src/app/pages/HostListings.tsx', 'utf8');
+c = c.replace("background: '#061412', borderLeft: '1px solid rgba(62,207,178,0.12)'", "background: 'linear-gradient(170deg, #061412 0%, #03020a 100%)'");
+c = c.replace("position: 'absolute', inset: 0, zIndex: 50, display: 'flex', flexDirection: 'column'", "position: 'absolute', inset: 0, zIndex: 50");
+c = c.replace("const [saving, setSaving] = useState(false);", "const [saving, setSaving] = useState(false);\n  const [saved, setSaved] = useState(false);");
+c = c.replace("setShowAdd(false);\n      setTitle('');", "setSaved(true);\n      setTimeout(() => { setSaved(false); setShowAdd(false); }, 2200);\n      setTitle('');");
+c = c.replace("<div className=\"grid gap-3\">", "<div style={{ padding: '20px 24px 100px', display: 'flex', flexDirection: 'column', gap: 16 }}>");
+c = c.replace(/className="w-full px-3 py-2 rounded-\[12px\] outline-none"/g, "");
+c = c.replace(/background: 'rgba\(255,255,255,0\.05\)', border: '1px solid rgba\(62,207,178,0\.15\)', color: 'white' }}/g, "width: '100%', padding: '13px 16px', borderRadius: 14, outline: 'none', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(62,207,178,0.15)', color: 'white', fontSize: 14, boxSizing: 'border-box' }}");
+c = c.replace(/<div className="text-\[12px\] mb-[12]" style={{ color: 'rgba\(255,255,255,0\.4\)' }}>/g, "<div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(62,207,178,0.6)', letterSpacing: 1, marginBottom: 8 }}>");
+c = c.replace(/<div className="grid grid-cols-2 gap-3">/g, "<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>");
+c = c.replace("background: amenities.includes(a) ? '#E8B86D' : 'rgba(255,255,255,0.05)',\n                        color: amenities.includes(a) ? '#061412' : 'white',\n                        border: '1px solid rgba(62,207,178,0.15)',", "background: amenities.includes(a) ? '#3ECFB2' : 'rgba(62,207,178,0.06)',\n                        color: amenities.includes(a) ? '#061412' : 'rgba(255,255,255,0.5)',\n                        border: amenities.includes(a) ? 'none' : '1px solid rgba(62,207,178,0.15)',");
+c = c.replace("background: 'linear-gradient(135deg, #3ECFB2, #2AA893)', color: '#061412', fontWeight: 700 }}>\n                {saving ? 'Saving\u2026' : 'Create Property'}", "width: '100%', padding: 16, borderRadius: 16, border: 'none', cursor: saving ? 'not-allowed' : 'pointer', background: saving ? 'rgba(255,255,255,0.08)' : 'linear-gradient(135deg, #3ECFB2, #2AA893)', color: saving ? 'rgba(255,255,255,0.3)' : '#061412', fontWeight: 800, fontSize: 15, boxShadow: saving ? 'none' : '0 8px 24px rgba(62,207,178,0.25)' }}>\n                {saving ? 'Creating...' : 'Create Property →'}");
+fs.writeFileSync('src/app/pages/HostListings.tsx', c);
+console.log('done');

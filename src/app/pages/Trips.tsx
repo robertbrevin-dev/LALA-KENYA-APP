@@ -14,6 +14,7 @@ export default function Trips() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('upcoming');
   const todayStr = new Date().toISOString().slice(0, 10);
 
   useEffect(() => {
@@ -103,9 +104,9 @@ export default function Trips() {
   return (
     <PhoneFrame>
       <BackRefreshBar />
-      <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
+      <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', background: '#0a0808' }}>
         {/* Header */}
-        <div className="px-6 pt-14 pb-5">
+        <div style={{ padding: '56px 24px 20px', background: 'linear-gradient(180deg, #100c08 0%, #0a0808 100%)', borderBottom: '1px solid rgba(232,184,109,0.08)' }}>
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -113,7 +114,7 @@ export default function Trips() {
             style={{
               fontFamily: 'var(--font-playfair)',
               fontWeight: 900,
-              color: 'var(--lala-white)'
+              color: 'white'
             }}
           >
             My Trips
@@ -123,7 +124,7 @@ export default function Trips() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
             className="text-[14px]"
-            style={{ color: 'var(--lala-soft)' }}
+            style={{ color: 'rgba(255,255,255,0.5)' }}
           >
             {loading ? 'Loading…' : `${bookings.length} upcoming ${bookings.length === 1 ? 'trip' : 'trips'}`}
           </motion.p>
@@ -132,7 +133,7 @@ export default function Trips() {
         {/* Content */}
         <div className="px-6 pb-24">
           {!loading && bookings.length === 0 && (
-            <div className="text-center mt-10" style={{ color: 'var(--lala-muted)' }}>
+            <div className="text-center mt-10" style={{ color: 'rgba(255,255,255,0.35)' }}>
               No upcoming trips yet.
             </div>
           )}
@@ -179,7 +180,7 @@ export default function Trips() {
               {/* Location */}
               <div 
                 className="text-[13px] mb-3"
-                style={{ color: 'var(--lala-muted)' }}
+                style={{ color: 'rgba(255,255,255,0.35)' }}
               >
                 📍 {booking.propertyLocation}
               </div>
@@ -188,17 +189,17 @@ export default function Trips() {
               <div className="flex items-center gap-2 mb-3">
                 <div 
                   className="text-[13px]"
-                  style={{ color: 'var(--lala-soft)' }}
+                  style={{ color: 'rgba(255,255,255,0.5)' }}
                 >
                   📅 {booking.checkIn} – {booking.checkOut} ({booking.nights} {booking.nights === 1 ? 'night' : 'nights'})
                 </div>
               </div>
 
               {/* Price */}
-              <div className="flex justify-between items-center pt-3" style={{ borderTop: '1px solid var(--lala-border)' }}>
+              <div className="flex justify-between items-center pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                 <div 
                   className="text-[12px]"
-                  style={{ color: 'var(--lala-muted)' }}
+                  style={{ color: 'rgba(255,255,255,0.35)' }}
                 >
                   Total paid
                 </div>
@@ -206,7 +207,7 @@ export default function Trips() {
                   className="text-[16px]"
                   style={{
                     fontWeight: 700,
-                    color: 'var(--lala-gold)'
+                    color: '#E8B86D'
                   }}
                 >
                   Ksh {Number(booking.totalAmount).toLocaleString()}
@@ -217,7 +218,7 @@ export default function Trips() {
               <div className="mt-3 flex flex-wrap gap-2 items-center">
                 <button
                   className="flex items-center gap-2 text-[14px] font-bold"
-                  style={{ color: 'var(--lala-gold)' }}
+                  style={{ color: '#E8B86D' }}
                   onClick={() => handleContactHost(booking)}
                 >
                   <MessageCircle size={16} />
@@ -227,7 +228,7 @@ export default function Trips() {
                   <button
                     onClick={() => updateStatus(booking.id, 'in_stay')}
                     className="px-3 py-1.5 rounded-[10px] border-none cursor-pointer text-[12px]"
-                    style={{ background: 'var(--lala-card)', border: '1px solid var(--lala-border)', color: 'var(--lala-white)' }}
+                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(232,184,109,0.1)', color: 'var(--lala-white)' }}
                   >
                     Check In
                   </button>
@@ -236,7 +237,7 @@ export default function Trips() {
                   <button
                     onClick={() => updateStatus(booking.id, 'completed')}
                     className="px-3 py-1.5 rounded-[10px] border-none cursor-pointer text-[12px]"
-                    style={{ background: 'var(--lala-card)', border: '1px solid var(--lala-border)', color: 'var(--lala-white)' }}
+                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(232,184,109,0.1)', color: 'var(--lala-white)' }}
                   >
                     Check Out
                   </button>
@@ -269,7 +270,7 @@ export default function Trips() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.08 }}
                   className="rounded-[16px] p-4 mb-3"
-                  style={{ background: 'var(--lala-card)', border: '1px solid var(--lala-border)' }}
+                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(232,184,109,0.1)' }}
                 >
                   <div
                     className="text-[14px] mb-1"
@@ -279,13 +280,13 @@ export default function Trips() {
                   </div>
                   <div
                     className="text-[12px] mb-2"
-                    style={{ color: 'var(--lala-muted)' }}
+                    style={{ color: 'rgba(255,255,255,0.35)' }}
                   >
                     📍 {stay.propertyLocation}
                   </div>
                   <div
                     className="text-[12px]"
-                    style={{ color: 'var(--lala-soft)' }}
+                    style={{ color: 'rgba(255,255,255,0.5)' }}
                   >
                     Stayed: {stay.checkIn} – {stay.checkOut} ({stay.nights} {stay.nights === 1 ? 'night' : 'nights'})
                   </div>
@@ -293,14 +294,14 @@ export default function Trips() {
                     <button
                       onClick={() => navigate(`/property/${stay.propertyId}`)}
                       className="px-3 py-1.5 rounded-[10px] border-none cursor-pointer text-[12px]"
-                      style={{ background: 'var(--lala-card)', border: '1px solid var(--lala-border)', color: 'var(--lala-white)' }}
+                      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(232,184,109,0.1)', color: 'var(--lala-white)' }}
                     >
                       Book Again
                     </button>
                     <button
                       onClick={() => navigate(`/property/${stay.propertyId}`)}
                       className="text-[12px] border-none bg-transparent cursor-pointer"
-                      style={{ color: 'var(--lala-gold)', fontWeight: 700 }}
+                      style={{ color: '#E8B86D', fontWeight: 700 }}
                     >
                       View details →
                     </button>

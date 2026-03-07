@@ -52,7 +52,7 @@ export default function HostSignup() {
 
   // Business
   const [bizName, setBizName] = useState('');
-  const [kraPin, setKraPin] = useState('');
+  const [businessPermit, setBusinessPermit] = useState('');
   const [agreed, setAgreed] = useState(false);
 
   // Shared
@@ -152,7 +152,7 @@ export default function HostSignup() {
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-      options: { data: { full_name: name.trim(), role: 'host', business_name: bizName.trim() } },
+      options: { data: { full_name: name.trim(), role: 'host', business_name: bizName.trim(), business_permit: businessPermit.trim() } },
     });
     console.log('📧 Email Signup - Response:', { data, error });
     if (error) {
@@ -160,7 +160,14 @@ export default function HostSignup() {
       setError(error.message); setLoading(false); return;
     }
     if (data.user) {
-      await supabase.from('profiles').upsert({ id: data.user.id, full_name: name.trim(), email: email.trim(), role: 'host', business_name: bizName.trim() });
+      await supabase.from('profiles').upsert({ 
+        id: data.user.id, 
+        full_name: name.trim(), 
+        email: email.trim(), 
+        role: 'host', 
+        business_name: bizName.trim(),
+        business_permit: businessPermit.trim()
+      });
     }
     setLoading(false); setSuccess(true);
   };
@@ -181,9 +188,20 @@ export default function HostSignup() {
     if (code.length < 6) return;
     setLoading(true); setError('');
     const { data, error } = await supabase.auth.verifyOtp({ phone: fullPhone, token: code, type: 'sms' });
-    if (error) { setError(error.message); setLoading(false); return; }
+    console.log('📱 OTP Verification - Response:', { data, error });
+    if (error) {
+      console.error('📱 OTP Verification - Error:', error.message);
+      setError(error.message); setLoading(false); return;
+    }
     if (data.user) {
-      await supabase.from('profiles').upsert({ id: data.user.id, full_name: name.trim(), phone: fullPhone, role: 'host', business_name: bizName.trim() });
+      await supabase.from('profiles').upsert({ 
+        id: data.user.id, 
+        full_name: name.trim(), 
+        phone: fullPhone, 
+        role: 'host', 
+        business_name: bizName.trim(),
+        business_permit: businessPermit.trim()
+      });
     }
     navigate('/host');
   };
@@ -197,7 +215,7 @@ export default function HostSignup() {
         className="w-full max-w-[390px] h-[844px] rounded-[44px] overflow-hidden flex flex-col items-center justify-center px-8"
         style={{ background: '#0D0F14', border: '1px solid rgba(255,255,255,0.06)', boxShadow: '0 60px 120px rgba(0,0,0,0.9)' }}>
         <BackRefreshBar />
-        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 220, delay: 0.1 }} className="text-[80px] mb-6">🏠</motion.div>
+        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 220, delay: 0.1 }} className="w-20 h-20 rounded-[24px] flex items-center justify-center mb-6" style={{ background: "linear-gradient(135deg, rgba(62,207,178,0.15), rgba(62,207,178,0.08))", border: "1px solid rgba(62,207,178,0.25)" }}><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3ECFB2" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></motion.div>
         <h2 style={{ fontFamily: 'var(--font-playfair)', fontSize: 26, fontWeight: 900, color: 'white', textAlign: 'center', marginBottom: 12 }}>Host account created!</h2>
         <p className="text-[13px] text-center mb-3" style={{ color: 'rgba(255,255,255,0.5)', lineHeight: 1.8 }}>Verification link sent to</p>
         <div className="px-5 py-3 rounded-[14px] mb-8" style={{ background: 'rgba(62,207,178,0.1)', border: '1px solid rgba(62,207,178,0.25)' }}>
@@ -206,7 +224,7 @@ export default function HostSignup() {
         <p className="text-[13px] text-center mb-8" style={{ color: 'rgba(255,255,255,0.35)', lineHeight: 1.7 }}>
           Verify your email then start listing your properties and earning with LALA Kenya.
         </p>
-        <motion.button whileTap={{ scale: 0.97 }} onClick={() => navigate('/login')}
+        <motion.button whileTap={{ scale: 0.97 }} onClick={() => navigate('/login/host')}
           className="w-full py-4 rounded-[16px] border-none cursor-pointer font-bold text-[15px]"
           style={{ background: `linear-gradient(135deg, ${TEAL}, #2AA893)`, color: '#0D0F14' }}>
           Go to Login →
@@ -239,9 +257,9 @@ export default function HostSignup() {
 
           {/* Header */}
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-5">
-            <div className="w-12 h-12 rounded-[14px] flex items-center justify-center text-[24px] mb-3"
+            <div className="w-12 h-12 rounded-[14px] flex items-center justify-center mb-3"
               style={{ background: 'rgba(62,207,178,0.1)', border: '1px solid rgba(62,207,178,0.2)' }}>
-              {step === 1 ? '🏠' : '🏢'}
+              {step === 1 ? <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3ECFB2" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> : <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3ECFB2" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>}
             </div>
             <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: 24, fontWeight: 900, color: 'white' }}>
               {step === 1 ? 'Host Account' : 'Business Details'}
@@ -358,9 +376,9 @@ export default function HostSignup() {
                     className={inputCls} style={inputStyle} />
                 </Field>
 
-                <Field label="KRA PIN" hint="(Optional — needed for payouts)">
-                  <input type="text" value={kraPin} onChange={e => setKraPin(e.target.value.toUpperCase())}
-                    placeholder="A123456789B" maxLength={11}
+                <Field label="Business Permit" hint="(Optional — needed for payouts)">
+                  <input type="text" value={businessPermit} onChange={e => setBusinessPermit(e.target.value.toUpperCase())}
+                    placeholder="BP123456789" maxLength={12}
                     className={inputCls} style={inputStyle} />
                 </Field>
 
@@ -422,7 +440,7 @@ export default function HostSignup() {
                   className="w-full py-4 rounded-[16px] border-none cursor-pointer font-bold text-[15px]"
                   style={{ background: loading ? 'rgba(255,255,255,0.1)' : `linear-gradient(135deg, ${TEAL}, #2AA893)`, color: loading ? 'rgba(255,255,255,0.4)' : '#0D0F14' }}>
                   {loading ? 'Creating host account...' :
-                   tab === 'email' ? '🏠 Create Host Account →' :
+                   tab === 'email' ? 'Create Host Account →' :
                    phoneStep === 'input' ? 'Send Verification SMS 📲' :
                    otp.join('').length < 6 ? `${otp.filter(Boolean).length}/6 digits` : 'Verify & Create Account →'}
                 </motion.button>
@@ -432,7 +450,7 @@ export default function HostSignup() {
 
           <div className="text-center mt-5">
             <span className="text-[13px]" style={{ color: 'rgba(255,255,255,0.35)' }}>Already have an account? </span>
-            <button onClick={() => navigate('/login')} className="text-[13px] border-none bg-transparent cursor-pointer"
+            <button onClick={() => navigate('/login/host')} className="text-[13px] border-none bg-transparent cursor-pointer"
               style={{ color: GOLD, fontWeight: 700 }}>Sign in</button>
           </div>
         </div>

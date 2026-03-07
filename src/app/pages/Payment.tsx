@@ -192,7 +192,7 @@ export default function Payment() {
                 background: 'linear-gradient(135deg, rgba(232,184,109,0.2), rgba(62,207,178,0.1))'
               }}
             >
-              {property.image}
+              {property.image?.startsWith("http") ? <img src={property.image} alt={property.title} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 14 }} /> : null}
             </div>
             <div>
               <div 

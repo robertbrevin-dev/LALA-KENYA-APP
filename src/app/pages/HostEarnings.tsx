@@ -92,7 +92,7 @@ export default function HostEarnings() {
         <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
           <BackRefreshBar />
           <div className="flex-1 flex items-center justify-center">
-            <div className="text-[14px]" style={{ color: 'var(--lala-muted)' }}>
+            <div className="text-[14px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
               Loading…
             </div>
           </div>
@@ -115,20 +115,20 @@ export default function HostEarnings() {
         <div className="px-6 pt-14 pb-5">
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             className="text-[28px] mb-1"
-            style={{ fontFamily: 'var(--font-playfair)', fontWeight: 900, color: 'var(--lala-white)' }}>
+            style={{ fontFamily: 'var(--font-playfair)', fontWeight: 900, color: 'white' }}>
             Earnings
           </motion.h1>
-          <p className="text-[14px]" style={{ color: 'var(--lala-soft)' }}>Track your income and performance</p>
+          <p className="text-[14px]" style={{ color: 'rgba(255,255,255,0.6)' }}>Track your income and performance</p>
         </div>
 
         <div className="px-6 pb-24">
           {/* This Month Card */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
             className="rounded-[20px] p-5 mb-4"
-            style={{ background: 'linear-gradient(135deg, var(--lala-gold), #C8903D)' }}>
-            <div className="text-[13px] mb-1" style={{ color: 'rgba(13,15,20,0.6)', fontWeight: 500 }}>This Month (Net)</div>
+            style={{ background: 'linear-gradient(135deg, #0a2420, #061412)', border: '1px solid rgba(62,207,178,0.25)' }}>
+            <div className="text-[13px] mb-1" style={{ color: 'rgba(62,207,178,0.6)', fontWeight: 700, letterSpacing: 1 }}>THIS MONTH (NET)</div>
             <div className="text-[36px] mb-1"
-              style={{ fontFamily: 'var(--font-playfair)', fontWeight: 900, color: 'var(--lala-night)' }}>
+              style={{ fontFamily: 'var(--font-playfair)', fontWeight: 900, color: 'white' }}>
               {loading ? '...' : `Ksh ${thisMonthNet.toLocaleString()}`}
             </div>
             <div className="text-[13px]" style={{ color: 'rgba(13,15,20,0.55)' }}>
@@ -143,18 +143,18 @@ export default function HostEarnings() {
           {/* Commission Breakdown */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
             className="rounded-[16px] p-4 mb-4"
-            style={{ background: 'var(--lala-card)', border: '1px solid var(--lala-border)' }}>
-            <div className="text-[13px] mb-3" style={{ color: 'var(--lala-muted)', fontWeight: 600, letterSpacing: 1 }}>
+            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(62,207,178,0.08)' }}>
+            <div className="text-[13px] mb-3" style={{ color: 'rgba(255,255,255,0.35)', fontWeight: 600, letterSpacing: 1 }}>
               ALL TIME BREAKDOWN
             </div>
             {[
-              { label: 'Gross Earnings', value: `Ksh ${totalEarnings.toLocaleString()}`, color: 'var(--lala-white)' },
+              { label: 'Gross Earnings', value: `Ksh ${totalEarnings.toLocaleString()}`, color: 'white' },
               { label: `LALA Commission (${Math.round(LALA_COMMISSION_RATE * 100)}%)`, value: `- Ksh ${commission.toLocaleString()}`, color: '#FF6B6B' },
-              { label: 'Your Net Earnings', value: `Ksh ${netEarnings.toLocaleString()}`, color: 'var(--lala-teal)' },
+              { label: 'Your Net Earnings', value: `Ksh ${netEarnings.toLocaleString()}`, color: '#3ECFB2' },
             ].map((row, i) => (
               <div key={i} className="flex justify-between items-center py-2.5"
                 style={{ borderBottom: i < 2 ? '1px solid var(--lala-border)' : 'none' }}>
-                <span className="text-[13px]" style={{ color: 'var(--lala-soft)' }}>{row.label}</span>
+                <span className="text-[13px]" style={{ color: 'rgba(255,255,255,0.6)' }}>{row.label}</span>
                 <span className="text-[14px]" style={{ color: row.color, fontWeight: 700 }}>{row.value}</span>
               </div>
             ))}
@@ -170,12 +170,12 @@ export default function HostEarnings() {
               { label: 'This Month Bookings', value: thisMonthBookings.length },
             ].map((stat, i) => (
               <div key={i} className="rounded-[16px] p-4"
-                style={{ background: 'var(--lala-card)', border: '1px solid var(--lala-border)' }}>
+                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(62,207,178,0.08)' }}>
                 <div className="text-[20px] mb-1"
-                  style={{ fontFamily: 'var(--font-playfair)', fontWeight: 700, color: 'var(--lala-white)' }}>
+                  style={{ fontFamily: 'var(--font-playfair)', fontWeight: 700, color: 'white' }}>
                   {loading ? '...' : stat.value}
                 </div>
-                <div className="text-[12px]" style={{ color: 'var(--lala-muted)' }}>{stat.label}</div>
+                <div className="text-[12px]" style={{ color: 'rgba(255,255,255,0.35)' }}>{stat.label}</div>
               </div>
             ))}
           </motion.div>
@@ -183,8 +183,8 @@ export default function HostEarnings() {
           {/* Chart */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
             className="rounded-[20px] p-5 mb-5"
-            style={{ background: 'var(--lala-card)', border: '1px solid var(--lala-border)' }}>
-            <div className="text-[14px] mb-4" style={{ color: 'var(--lala-white)', fontWeight: 600 }}>6-Month Earnings</div>
+            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(62,207,178,0.08)' }}>
+            <div className="text-[14px] mb-4" style={{ color: 'white', fontWeight: 600 }}>6-Month Earnings</div>
             <div className="flex items-end justify-between gap-2 h-[100px] mb-3">
               {chartData.map((val, i) => (
                 <div key={i} className="flex-1 flex flex-col items-center">
@@ -193,7 +193,7 @@ export default function HostEarnings() {
                     animate={{ height: `${(val / maxChart) * 90}px` }}
                     transition={{ delay: 0.3 + i * 0.1, duration: 0.5 }}
                     className="w-full rounded-t-[6px]"
-                    style={{ background: i === 5 ? 'var(--lala-gold)' : 'rgba(232,184,109,0.25)', minHeight: 4 }}
+                    style={{ background: i === 5 ? '#3ECFB2' : 'rgba(62,207,178,0.15)', minHeight: 4 }}
                   />
                 </div>
               ))}
@@ -201,22 +201,22 @@ export default function HostEarnings() {
             <div className="flex justify-between">
               {months.map((m, i) => (
                 <div key={i} className="flex-1 text-center text-[11px]"
-                  style={{ color: i === 5 ? 'var(--lala-gold)' : 'var(--lala-muted)' }}>{m}</div>
+                  style={{ color: i === 5 ? '#3ECFB2' : 'rgba(255,255,255,0.3)' }}>{m}</div>
               ))}
             </div>
           </motion.div>
 
           {/* Recent Transactions */}
-          <div className="text-[13px] mb-3" style={{ color: 'var(--lala-muted)', fontWeight: 600, letterSpacing: 1 }}>
+          <div className="text-[13px] mb-3" style={{ color: 'rgba(255,255,255,0.35)', fontWeight: 600, letterSpacing: 1 }}>
             RECENT TRANSACTIONS
           </div>
           {loading ? (
-            <div className="text-center py-6" style={{ color: 'var(--lala-muted)' }}>Loading...</div>
+            <div className="text-center py-6" style={{ color: 'rgba(255,255,255,0.35)' }}>Loading...</div>
           ) : bookings.length === 0 ? (
             <div className="rounded-[16px] p-8 text-center"
-              style={{ background: 'var(--lala-card)', border: '1px solid var(--lala-border)' }}>
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(62,207,178,0.08)' }}>
               <div className="text-[40px] mb-2">💰</div>
-              <div className="text-[14px]" style={{ color: 'var(--lala-muted)' }}>No earnings yet</div>
+              <div className="text-[14px]" style={{ color: 'rgba(255,255,255,0.35)' }}>No earnings yet</div>
             </div>
           ) : (
             bookings.slice(0, 10).map((booking, index) => (
@@ -224,20 +224,20 @@ export default function HostEarnings() {
                 initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.5 + index * 0.05 }}
                 className="rounded-[16px] p-4 mb-2.5 flex items-center justify-between"
-                style={{ background: 'var(--lala-card)', border: '1px solid var(--lala-border)' }}>
+                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(62,207,178,0.08)' }}>
                 <div>
-                  <div className="text-[14px] mb-0.5" style={{ fontWeight: 600, color: 'var(--lala-white)' }}>
+                  <div className="text-[14px] mb-0.5" style={{ fontWeight: 600, color: 'white' }}>
                     {booking.property_title}
                   </div>
-                  <div className="text-[12px]" style={{ color: 'var(--lala-muted)' }}>
+                  <div className="text-[12px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
                     {booking.guest_name} · {new Date(booking.created_at).toLocaleDateString('en-KE', { day: 'numeric', month: 'short' })}
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-[15px]" style={{ fontWeight: 700, color: 'var(--lala-teal)' }}>
+                  <div className="text-[15px]" style={{ fontWeight: 700, color: '#3ECFB2' }}>
                     +Ksh {Math.round(booking.total_amount * 0.9).toLocaleString()}
                   </div>
-                  <div className="text-[11px]" style={{ color: 'var(--lala-muted)' }}>After commission</div>
+                  <div className="text-[11px]" style={{ color: 'rgba(255,255,255,0.35)' }}>After commission</div>
                 </div>
               </motion.div>
             ))

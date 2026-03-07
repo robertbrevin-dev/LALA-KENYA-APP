@@ -5,7 +5,8 @@ import { supabase, isAuthEnabled } from '../../lib/supabase';
 import BackRefreshBar from '../components/BackRefreshBar';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
-import { COUNTRY_CODES, CountryCode, GoogleIcon, CountryPicker, OtpRow } from './AuthShared.tsx';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { COUNTRY_CODES, CountryCode, GoogleIcon, CountryPicker, OtpRow } from './AuthShared';
 import { openCenteredPopup } from '../lib/oauthPopup';
 
 type Tab = 'email' | 'phone';
@@ -50,7 +51,15 @@ export default function Login() {
   const [gLoading, setGLoading] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => { if (currentUser) navigate('/home'); }, [currentUser]);
+  useEffect(() => { 
+    if (currentUser) {
+      if (currentUser.role === 'host') {
+        navigate('/host');
+      } else {
+        navigate('/home');
+      }
+    }
+  }, [currentUser]);
 
   useEffect(() => {
     if (resend <= 0) return;
@@ -68,11 +77,16 @@ export default function Login() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
       if (event === 'SIGNED_IN' && session?.user) {
         const u = session.user; const m = u.user_metadata;
+        const userRole = m?.role || 'guest';
         await supabase.from('profiles').upsert({
           id: u.id, full_name: m?.full_name || m?.name || '',
-          email: u.email, avatar_url: m?.avatar_url || m?.picture || null, role: 'guest',
+          email: u.email, avatar_url: m?.avatar_url || m?.picture || null, role: userRole,
         }, { onConflict: 'id', ignoreDuplicates: true });
-        navigate('/home');
+        if (userRole === 'host') {
+          navigate('/host');
+        } else {
+          navigate('/home');
+        }
       }
     });
     return () => subscription.unsubscribe();
@@ -86,7 +100,7 @@ export default function Login() {
     setLoading(true); setError('');
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     if (error) { setError(error.message); setLoading(false); return; }
-    navigate('/home');
+    // Navigation will be handled by AppContext useEffect
   };
 
   const fullPhone = `${country.code}${phone.replace(/^0+/, '').replace(/\D/g, '')}`;
@@ -105,7 +119,7 @@ export default function Login() {
     setLoading(true); setError('');
     const { error } = await supabase.auth.verifyOtp({ phone: fullPhone, token: code, type: 'sms' });
     if (error) { setError(error.message); setLoading(false); return; }
-    navigate('/home');
+    // Navigation will be handled by AppContext useEffect
   };
 
   const handleGoogle = async () => {
@@ -113,7 +127,7 @@ export default function Login() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/oauth/callback?next=/home`,
+        redirectTo: `${window.location.origin}/oauth/callback?next=/`,
         queryParams: { access_type: 'offline', prompt: 'consent' },
         skipBrowserRedirect: true,
       },
@@ -181,15 +195,15 @@ export default function Login() {
           {/* ── Tab toggle ── */}
           <div className="flex rounded-[14px] p-1 mb-5"
             style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-            {(['email', 'phone'] as Tab[]).map(t => (
-              <button key={t}
-                onClick={() => { setTab(t); reset(); setPhoneStep('input'); setOtp(['','','','','','']); }}
+            {(['email', 'phone'] as Tab[]).map(tabOption => (
+              <button key={tabOption}
+                onClick={() => { setTab(tabOption); reset(); setPhoneStep('input'); setOtp(['','','','','','']); }}
                 className="flex-1 py-2.5 rounded-[11px] border-none cursor-pointer text-[13px] font-bold flex items-center justify-center gap-1.5 transition-all"
                 style={{
-                  background: tab === t ? GOLD : 'transparent',
-                  color: tab === t ? '#0D0F14' : 'rgba(255,255,255,0.4)',
+                  background: tab === tabOption ? GOLD : 'transparent',
+                  color: tab === tabOption ? '#0D0F14' : 'rgba(255,255,255,0.4)',
                 }}>
-                {t === 'email' ? `✉️ ${t('auth.email')}` : `📱 ${t('auth.phone')}`}
+                {tabOption === 'email' ? `✉️ ${t('auth.email')}` : `📱 ${t('auth.phone')}`}
               </button>
             ))}
           </div>
@@ -370,10 +384,9 @@ export default function Login() {
 
           </AnimatePresence>
 
-          {/* Footer */}
           <div className="mt-6 text-center">
             <span className="text-[13px]" style={{ color: 'rgba(255,255,255,0.35)' }}>{t('auth.already_have_account')} </span>
-            <button onClick={() => navigate('/signup')}
+            <button onClick={() => navigate('/signup/guest')}
               className="text-[13px] border-none bg-transparent cursor-pointer"
               style={{ color: GOLD, fontWeight: 700 }}>{t('auth.create_account')}</button>
           </div>

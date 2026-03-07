@@ -1,0 +1,15 @@
+const fs = require('fs');
+let c = fs.readFileSync('src/app/routes.tsx', 'utf8');
+const imports = `import Login from './pages/Login';
+import GuestLogin from './pages/GuestLogin';
+import HostLogin from './pages/HostLogin';
+import Signup from './pages/Signup';
+import GuestSignup from './pages/GuestSignup';
+import HostSignup from './pages/HostSignup';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import OauthCallback from './pages/OauthCallback';
+`;
+c = imports + c;
+fs.writeFileSync('src/app/routes.tsx', c);
+console.log('done');

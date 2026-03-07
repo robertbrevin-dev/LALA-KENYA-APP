@@ -17,23 +17,19 @@ export default function Signup() {
   const [gError, setGError] = useState('');
 
   useEffect(() => {
-    if (currentUser) navigate('/home');
+    if (currentUser) {
+      if (currentUser.role === 'host') navigate('/host');
+      else navigate('/home');
+    }
   }, [currentUser, navigate]);
 
-  // Ensure we have a profiles row for Google sign-ins started here
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         const u = session.user;
         const m = u.user_metadata || {};
         await supabase.from('profiles').upsert(
-          {
-            id: u.id,
-            full_name: m.full_name || m.name || '',
-            email: u.email,
-            avatar_url: m.avatar_url || m.picture || null,
-            role: m.role || 'guest',
-          },
+          { id: u.id, full_name: m.full_name || m.name || '', email: u.email, avatar_url: m.avatar_url || m.picture || null, role: m.role || 'guest' },
           { onConflict: 'id', ignoreDuplicates: true }
         );
       }
@@ -42,210 +38,154 @@ export default function Signup() {
   }, []);
 
   const handleGoogle = async () => {
-    setGLoading(true);
-    setGError('');
+    setGLoading(true); setGError('');
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/oauth/callback?next=/home`,
-        queryParams: { access_type: 'offline', prompt: 'consent' },
-        skipBrowserRedirect: true,
-      },
+      options: { redirectTo: `${window.location.origin}/oauth/callback?next=/`, queryParams: { access_type: 'offline', prompt: 'consent' }, skipBrowserRedirect: true },
     });
-    if (error) {
-      setGError(error.message);
-      setGLoading(false);
-      return;
-    }
+    if (error) { setGError(error.message); setGLoading(false); return; }
     const popup = data?.url ? openCenteredPopup(data.url, 'LALA Kenya — Google') : null;
-    if (!popup) {
-      setGError('Popup blocked. Please allow popups and try again.');
-      setGLoading(false);
-    }
+    if (!popup) { setGError('Popup blocked. Please allow popups and try again.'); setGLoading(false); }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-6">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-[390px] h-[844px] rounded-[44px] overflow-hidden relative flex flex-col"
-        style={{
-          background: 'var(--lala-night)',
-          border: '1px solid var(--lala-border)',
-          boxShadow: '0 60px 120px rgba(0,0,0,0.6)',
-        }}
-      >
-        <BackRefreshBar />
-        <div className="absolute inset-0" style={{
-          background: `radial-gradient(ellipse 80% 60% at 50% 20%, rgba(232,184,109,0.12) 0%, transparent 70%)`
-        }} />
+    <div className="flex items-center justify-center min-h-screen" style={{ background: '#040304' }}>
+      {/* Ambient glow */}
+      <div className="fixed inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 0%, rgba(232,184,109,0.08) 0%, transparent 60%)' }} />
 
-        <div className="relative z-10 flex flex-col flex-1 px-8 pt-16 pb-10">
-          {/* Language Switcher */}
-          <div className="flex justify-end mb-4">
+      <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}
+        className="w-full max-w-[390px] h-[844px] rounded-[44px] overflow-hidden relative flex flex-col"
+        style={{ background: 'linear-gradient(170deg, #0e0b08 0%, #080608 60%, #060408 100%)', border: '1px solid rgba(232,184,109,0.1)', boxShadow: '0 60px 120px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.03)' }}>
+
+        {/* Grid overlay */}
+        <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(232,184,109,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(232,184,109,0.02) 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+        {/* Top glow */}
+        <div className="absolute top-0 left-0 right-0 h-64 pointer-events-none" style={{ background: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(232,184,109,0.1) 0%, transparent 70%)' }} />
+
+        <BackRefreshBar />
+
+        <div className="relative z-10 flex flex-col flex-1 px-6 pt-10 pb-8 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
+
+          {/* Top bar */}
+          <div className="flex items-center justify-between mb-6">
+            <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate('/')}
+              className="flex items-center gap-1.5 border-none bg-transparent cursor-pointer"
+              style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
+              <span style={{ fontSize: 16 }}>←</span> {t('auth.back')}
+            </motion.button>
             <LanguageSwitcher compact />
           </div>
 
-          {/* Back arrow to Splash */}
-          <button
-            onClick={() => navigate('/')}
-            className="mb-4 self-start border-none bg-transparent cursor-pointer flex items-center gap-1 text-[13px]"
-            style={{ color: 'var(--lala-soft)' }}
-          >
-            <span style={{ fontSize: 18 }}>←</span>
-            <span>{t('auth.back')}</span>
-          </button>
-
-          {/* Logo */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10">
-            <div className="w-[64px] h-[64px] rounded-[18px] flex items-center justify-center mx-auto mb-5"
-              style={{ background: 'linear-gradient(135deg, var(--lala-gold), #C8903D)', boxShadow: '0 16px 32px rgba(232,184,109,0.3)' }}>
-              <span style={{ fontFamily: 'var(--font-playfair)', fontSize: 28, fontWeight: 900, color: 'var(--lala-night)' }}>L</span>
+          {/* Logo + Title */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
+            <div className="w-16 h-16 rounded-[20px] flex items-center justify-center mx-auto mb-4 relative"
+              style={{ background: 'linear-gradient(145deg, #F7DC8A, #E8B86D, #C8843A)', boxShadow: '0 16px 40px rgba(232,184,109,0.4)' }}>
+              <div className="absolute inset-0 rounded-[20px]" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%)' }} />
+              <span style={{ fontFamily: 'var(--font-playfair)', fontSize: 30, fontWeight: 900, color: '#1a0800' }}>L</span>
             </div>
-            <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: 32, fontWeight: 900, color: 'var(--lala-white)' }}>
+            <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: 28, fontWeight: 900, color: 'white', lineHeight: 1.2 }}>
               {t('auth.join_lala_kenya')}
             </h1>
-            <p className="text-[15px] mt-2" style={{ color: 'var(--lala-muted)' }}>
+            <p className="text-[14px] mt-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
               {t('auth.how_use_lala')}
             </p>
           </motion.div>
 
           {/* Guest Card */}
-          <motion.button
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            onClick={() => navigate('/signup/guest')}
-            className="w-full rounded-[20px] p-6 mb-4 text-left cursor-pointer border-none"
-            style={{
-              background: 'var(--lala-card)',
-              border: '1px solid var(--lala-border)',
-            }}
-          >
+          <motion.button initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+            whileTap={{ scale: 0.98 }} onClick={() => navigate('/signup/guest')}
+            className="w-full rounded-[22px] p-5 mb-3 text-left cursor-pointer border-none relative overflow-hidden"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <div className="absolute inset-0 rounded-[22px] opacity-0 hover:opacity-100 transition-opacity" style={{ background: 'rgba(232,184,109,0.04)' }} />
             <div className="flex items-center gap-4 mb-3">
-              <div className="w-14 h-14 rounded-[16px] flex items-center justify-center text-[28px]"
-                style={{ background: 'rgba(232,184,109,0.15)' }}>
+              <div className="w-13 h-13 rounded-[16px] flex items-center justify-center text-[26px] flex-shrink-0"
+                style={{ background: 'rgba(232,184,109,0.12)', border: '1px solid rgba(232,184,109,0.15)', width: 52, height: 52 }}>
                 🏨
               </div>
-              <div>
-                <div className="text-[18px]" style={{ fontFamily: 'var(--font-playfair)', fontWeight: 800, color: 'var(--lala-white)' }}>
+              <div className="flex-1">
+                <div className="text-[17px] font-bold mb-0.5" style={{ fontFamily: 'var(--font-playfair)', color: 'white' }}>
                   {t('auth.im_guest')}
                 </div>
-                <div className="text-[13px]" style={{ color: 'var(--lala-muted)' }}>
+                <div className="text-[12px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
                   {t('auth.find_book_stays')}
                 </div>
               </div>
-              <div className="ml-auto text-[20px]" style={{ color: 'var(--lala-gold)' }}>→</div>
+              <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ background: 'rgba(232,184,109,0.15)', color: '#E8B86D', fontSize: 14 }}>→</div>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-2 flex-wrap">
               {['🔍 Browse properties', '📅 Book instantly', '💬 Message hosts'].map((item, i) => (
-                <div key={i} className="text-[11px] px-2.5 py-1 rounded-[20px]"
-                  style={{ background: 'rgba(232,184,109,0.1)', color: 'var(--lala-gold)', fontWeight: 500 }}>
+                <div key={i} className="text-[10px] px-2.5 py-1 rounded-full font-bold"
+                  style={{ background: 'rgba(232,184,109,0.08)', color: '#E8B86D', border: '1px solid rgba(232,184,109,0.15)' }}>
                   {item}
                 </div>
               ))}
             </div>
           </motion.button>
 
-          {/* Google (Guest) */}
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            onClick={handleGoogle}
-            disabled={gLoading}
-            className="w-full py-3.5 rounded-[16px] border-none cursor-pointer mb-4 flex items-center justify-center gap-3"
-            style={{
-              background: 'white',
-              color: '#111',
-              fontWeight: 800,
-              fontSize: 14,
-              boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
-              opacity: gLoading ? 0.8 : 1,
-              cursor: gLoading ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {gLoading ? <div className="w-5 h-5 rounded-full border-2 border-gray-300 border-t-blue-500 animate-spin" /> : <GoogleIcon />}
+          {/* Google Button */}
+          <motion.button initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}
+            whileTap={{ scale: 0.97 }} onClick={handleGoogle} disabled={gLoading}
+            className="w-full py-3.5 rounded-[16px] border-none cursor-pointer mb-3 flex items-center justify-center gap-3"
+            style={{ background: 'white', color: '#111', fontWeight: 700, fontSize: 13, boxShadow: '0 8px 24px rgba(0,0,0,0.4)', opacity: gLoading ? 0.8 : 1 }}>
+            {gLoading
+              ? <div className="w-5 h-5 rounded-full border-2 border-gray-300 border-t-blue-500 animate-spin" />
+              : <GoogleIcon />}
             {gLoading ? t('auth.opening_google') : `${t('auth.continue_with_google')} (${t('auth.im_guest')})`}
           </motion.button>
 
-          {!!gError && (
-            <div className="text-[12px] mb-4 text-center" style={{ color: '#FF6B6B' }}>
-              {gError}
-            </div>
-          )}
+          {gError && <p className="text-[11px] mb-3 text-center" style={{ color: '#FF6B6B' }}>{gError}</p>}
 
           {/* Host Card */}
-          <motion.button
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            onClick={() => navigate('/signup/host')}
-            className="w-full rounded-[20px] p-6 mb-8 text-left cursor-pointer border-none"
-            style={{
-              background: 'linear-gradient(135deg, rgba(232,184,109,0.12), rgba(62,207,178,0.06))',
-              border: '1px solid rgba(232,184,109,0.25)',
-            }}
-          >
+          <motion.button initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+            whileTap={{ scale: 0.98 }} onClick={() => navigate('/signup/host')}
+            className="w-full rounded-[22px] p-5 mb-6 text-left cursor-pointer border-none relative overflow-hidden"
+            style={{ background: 'linear-gradient(135deg, rgba(232,184,109,0.09), rgba(62,207,178,0.04))', border: '1px solid rgba(232,184,109,0.2)' }}>
+            <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(232,184,109,0.3), transparent)' }} />
             <div className="flex items-center gap-4 mb-3">
-              <div className="w-14 h-14 rounded-[16px] flex items-center justify-center text-[28px]"
-                style={{ background: 'rgba(232,184,109,0.2)' }}>
+              <div className="w-13 h-13 rounded-[16px] flex items-center justify-center text-[26px] flex-shrink-0"
+                style={{ background: 'rgba(232,184,109,0.15)', border: '1px solid rgba(232,184,109,0.2)', width: 52, height: 52 }}>
                 🏠
               </div>
-              <div>
-                <div className="text-[18px]" style={{ fontFamily: 'var(--font-playfair)', fontWeight: 800, color: 'var(--lala-white)' }}>
+              <div className="flex-1">
+                <div className="text-[17px] font-bold mb-0.5" style={{ fontFamily: 'var(--font-playfair)', color: 'white' }}>
                   {t('auth.im_host')}
                 </div>
-                <div className="text-[13px]" style={{ color: 'var(--lala-muted)' }}>
+                <div className="text-[12px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
                   {t('auth.list_space_earn')}
                 </div>
               </div>
-              <div className="ml-auto text-[20px]" style={{ color: 'var(--lala-gold)' }}>→</div>
+              <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ background: 'rgba(232,184,109,0.2)', color: '#E8B86D', fontSize: 14 }}>→</div>
             </div>
-            <div className="flex gap-3 flex-wrap">
+            <div className="flex gap-2 flex-wrap">
               {['💰 Earn money', '📊 Track bookings', '⭐ Build reviews'].map((item, i) => (
-                <div key={i} className="text-[11px] px-2.5 py-1 rounded-[20px]"
-                  style={{ background: 'rgba(232,184,109,0.15)', color: 'var(--lala-gold)', fontWeight: 500 }}>
+                <div key={i} className="text-[10px] px-2.5 py-1 rounded-full font-bold"
+                  style={{ background: 'rgba(232,184,109,0.12)', color: '#E8B86D', border: '1px solid rgba(232,184,109,0.2)' }}>
                   {item}
                 </div>
               ))}
             </div>
           </motion.button>
 
-          {/* Login + browse without account */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="text-center mt-auto space-y-2"
-          >
+          {/* Bottom links */}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
+            className="text-center space-y-2 mt-auto">
             <div>
-              <span className="text-[14px]" style={{ color: 'var(--lala-muted)' }}>
+              <span className="text-[13px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
                 {t('auth.already_have_account')}{' '}
               </span>
-              <button
-                onClick={() => navigate('/login')}
-                style={{
-                  color: 'var(--lala-gold)',
-                  fontWeight: 600,
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: 14,
-                }}
-              >
+              <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/login')}
+                className="border-none bg-transparent cursor-pointer text-[13px] font-bold"
+                style={{ color: '#E8B86D' }}>
                 {t('auth.sign_in')}
-              </button>
+              </motion.button>
             </div>
-            <button
-              onClick={() => navigate('/home')}
-              className="border-none bg-transparent cursor-pointer text-[13px]"
-              style={{ color: 'var(--lala-soft)' }}
-            >
+            <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/home')}
+              className="border-none bg-transparent cursor-pointer text-[12px]"
+              style={{ color: 'rgba(255,255,255,0.25)' }}>
               {t('auth.continue_as_guest')}
-            </button>
+            </motion.button>
           </motion.div>
         </div>
       </motion.div>

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import PhoneFrame from '../components/PhoneFrame';
 import BottomNav from '../components/BottomNav';
 import { useApp } from '../context/AppContext';
@@ -215,7 +217,7 @@ function fmtEta(km: number, speed: number) {
 
 export default function MapPage() {
   const navigate = useNavigate();
-  const { properties, currentUser } = useApp();
+  const { properties, currentUser, loading } = useApp();
 
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
@@ -238,7 +240,7 @@ export default function MapPage() {
   const [search, setSearch] = useState('');
   const [propFilter, setPropFilter] = useState('All');
   const [landmarkCat, setLandmarkCat] = useState('all');
-  const [panel, setPanel] = useState<'guest' | 'host'>('guest');
+  const panel = 'guest';
   const [showLandmarks, setShowLandmarks] = useState(true);
   const [nearbyAlert, setNearbyAlert] = useState(false);
   const [showTips, setShowTips] = useState(false);
@@ -256,6 +258,16 @@ export default function MapPage() {
   const [searchPin, setSearchPin] = useState<{ lat: number; lng: number; name: string } | null>(null);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchPinMarkerRef = useRef<any>(null);
+  
+  // Set panel based on user role
+  useEffect(() => {
+    console.log('🗺️ Map - User role check:', { currentUser, role: currentUser?.role });
+    if (currentUser?.role === 'host') {
+      // host redirected
+    } else {
+      // guest stays
+    }
+  }, [currentUser]);
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('lala-map-theme') === 'dark' ||
@@ -264,7 +276,7 @@ export default function MapPage() {
     return true;
   });
 
-  const propList = properties.map((p, i) => ({ ...p, coords: resolveCoords(p.location, i) }));
+  const propList = properties.map((p, i) => ({ ...p, coords: (p.latitude && p.longitude) ? { lat: p.latitude, lng: p.longitude } : resolveCoords(p.location, i) }));
   const filteredProps = propList.filter(p => {
     const ms = p.title.toLowerCase().includes(search.toLowerCase()) || p.location.toLowerCase().includes(search.toLowerCase());
     const mf = propFilter === 'All' || p.category === propFilter;
@@ -277,7 +289,6 @@ export default function MapPage() {
 
   useEffect(() => {
     if (!mapInstance.current || !loaded) return;
-    const L = (window as any).L;
     if (!L) return;
     if (tileLayerRef.current) {
       try { mapInstance.current.removeLayer(tileLayerRef.current); } catch {}
@@ -296,9 +307,7 @@ export default function MapPage() {
     }
   }, [dist, navigating]);
 
-  useEffect(() => {
-    if (currentUser?.role === 'host') setPanel('host');
-  }, [currentUser?.role]);
+ 
 
   function addUserMarker(L: any, map: any, pos: { lat: number; lng: number }) {
     if (userMarkerRef.current) { try { map.removeLayer(userMarkerRef.current); } catch {} }
@@ -314,7 +323,6 @@ export default function MapPage() {
   }
 
   const drawRoute = useCallback(async (from: { lat: number; lng: number }, to: { lat: number; lng: number }) => {
-    const L = (window as any).L;
     if (!L || !mapInstance.current) return;
     if (routeRef.current) {
       try { mapInstance.current.removeLayer(routeRef.current); } catch {}
@@ -373,7 +381,6 @@ export default function MapPage() {
         const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         setUserPos(p);
         setGpsError(false);
-        const L = (window as any).L;
         if (L && mapInstance.current) {
           addUserMarker(L, mapInstance.current, p);
           if (effectiveTarget) drawRoute(p, effectiveTarget);
@@ -401,11 +408,12 @@ export default function MapPage() {
       async (pos) => {
         const { latitude: lat, longitude: lng, accuracy, heading, speed } = pos.coords;
         setUserPos({ lat, lng });
-        const L = (window as any).L;
         if (L && mapInstance.current) addUserMarker(L, mapInstance.current, { lat, lng });
         await supabase.from('guest_locations').upsert({
           user_id: currentUser.id,
-          booking_id: bookingId,
+             
+
+          booking_id: bookingid,
           lat,
           lng,
           accuracy_m: accuracy ?? null,
@@ -470,7 +478,6 @@ export default function MapPage() {
   }, [currentUser?.id, currentUser?.role]);
 
   useEffect(() => {
-    const L = (window as any).L;
     if (!L || !mapInstance.current || !loaded || currentUser?.role !== 'host') return;
     guestMarkersRef.current.forEach(m => { try { mapInstance.current.removeLayer(m); } catch {} });
     guestMarkersRef.current.clear();
@@ -512,7 +519,6 @@ export default function MapPage() {
   }, [currentUser?.id, currentUser?.role]);
 
   useEffect(() => {
-    const L = (window as any).L;
     if (!L || !mapInstance.current || !loaded) return;
     propMarkersRef.current.forEach(m => { try { mapInstance.current.removeLayer(m); } catch {} });
     propMarkersRef.current = [];
@@ -527,7 +533,6 @@ export default function MapPage() {
   }, [filteredProps, loaded, selected]);
 
   useEffect(() => {
-    const L = (window as any).L;
     if (!L || !mapInstance.current || !loaded) return;
     landmarkMarkersRef.current.forEach(m => { try { mapInstance.current.removeLayer(m); } catch {} });
     landmarkMarkersRef.current = [];
@@ -552,7 +557,6 @@ export default function MapPage() {
 
   const initMap = useCallback(() => {
     if (!mapRef.current || mapInstance.current) return;
-    const L = (window as any).L;
     const map = L.map(mapRef.current, {
       center: [NAIROBI.lat, NAIROBI.lng],
       zoom: 13,
@@ -594,16 +598,7 @@ export default function MapPage() {
       s.textContent = '@keyframes lala-pulse{0%,100%{transform:scale(1);opacity:0.5}50%{transform:scale(2.2);opacity:0}}.leaflet-container{font-family:sans-serif;}';
       document.head.appendChild(s);
     }
-    if (!document.getElementById('leaflet-css')) {
-      const l = document.createElement('link');
-      l.id = 'leaflet-css'; l.rel = 'stylesheet'; l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-      document.head.appendChild(l);
-    }
-    if ((window as any).L) { initMap(); return; }
-    const sc = document.createElement('script');
-    sc.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    sc.onload = () => initMap();
-    document.head.appendChild(sc);
+    initMap();
     return () => { stopNav(); if (mapInstance.current) { mapInstance.current.remove(); mapInstance.current = null; } };
   }, []);
 
@@ -611,7 +606,6 @@ export default function MapPage() {
     navigator.geolocation?.getCurrentPosition(pos => {
       const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
       setUserPos(p);
-      const L = (window as any).L;
       if (L && mapInstance.current) addUserMarker(L, mapInstance.current, p);
       mapInstance.current?.flyTo([p.lat, p.lng], 15, { duration: 1.2 });
     });
@@ -653,7 +647,6 @@ export default function MapPage() {
 
   const jumpToResult = (result: any) => {
     if (!mapInstance.current) return;
-    const L = (window as any).L;
     if (result.type === 'property' && result.prop) {
       setSelected(result.prop); setSelectedLandmark(null);
       mapInstance.current.flyTo([result.lat, result.lng], 16, { duration: 1.2 });
@@ -727,15 +720,7 @@ export default function MapPage() {
               </div>
             </div>
             <div className="flex gap-1.5">
-              <div className="flex rounded-[10px] overflow-hidden" style={{ border: '1.5px solid rgba(13,15,20,0.12)' }}>
-                {(['guest', 'host'] as const).map(p => (
-                  <button key={p} onClick={() => setPanel(p)}
-                    className="px-2.5 py-1.5 border-none cursor-pointer text-[10px] font-bold"
-                    style={{ background: panel === p ? '#0D0F14' : 'transparent', color: panel === p ? '#E8B86D' : '#888' }}>
-                    {p === 'guest' ? '🏨 Guest' : '🏠 Host'}
-                  </button>
-                ))}
-              </div>
+              
               <button
                 onClick={() => setIsDark(v => !v)}
                 className="w-9 h-9 rounded-[10px] flex items-center justify-center border-none cursor-pointer text-[16px]"
@@ -1241,118 +1226,7 @@ export default function MapPage() {
           )}
         </AnimatePresence>
         <AnimatePresence>
-          {panel === 'host' && !navigating && (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
-              className="absolute left-4 right-4 z-[1003] rounded-[20px] overflow-hidden"
-              style={{ top: 210, background: 'rgba(13,15,20,0.97)', border: '1.5px solid rgba(232,184,109,0.2)', backdropFilter: 'blur(24px)', boxShadow: '0 16px 40px rgba(0,0,0,0.7)' }}>
-              <div className="px-4 pt-4 pb-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-[15px] font-bold" style={{ fontFamily: 'var(--font-playfair)', color: 'white' }}>🏠 Host Panel</div>
-                    <div className="text-[11px]" style={{ color: '#888' }}>Live guest tracking</div>
-                  </div>
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-[20px]"
-                    style={{ background: liveGuests.length > 0 ? 'rgba(62,207,178,0.12)' : 'rgba(255,255,255,0.06)', border: liveGuests.length > 0 ? '1px solid rgba(62,207,178,0.3)' : '1px solid rgba(255,255,255,0.1)' }}>
-                    <div className="w-1.5 h-1.5 rounded-full" style={{ background: liveGuests.length > 0 ? '#3ECFB2' : '#666', boxShadow: liveGuests.length > 0 ? '0 0 6px #3ECFB2' : 'none' }} />
-                    <span className="text-[10px] font-bold" style={{ color: liveGuests.length > 0 ? '#3ECFB2' : '#666' }}>
-                      {liveGuests.length > 0 ? 'LIVE' : 'NO GUESTS'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="px-4 py-3 max-h-[380px] overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
-                {liveGuests.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="text-[40px] mb-3">📡</div>
-                    <div className="text-[13px] font-bold mb-1" style={{ color: 'white' }}>No guests sharing location</div>
-                    <div className="text-[11px] leading-relaxed" style={{ color: '#555' }}>
-                      Guests with active bookings can share their live GPS so you know when they arrive.
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="text-[10px] font-bold mb-2" style={{ color: '#3ECFB2', letterSpacing: 1 }}>
-                      🟢 {liveGuests.length} GUEST{liveGuests.length > 1 ? 'S' : ''} SHARING LIVE LOCATION
-                    </div>
-                    {liveGuests.map((g: any, i: number) => {
-                      const name = g.bookings?.guest_name || 'Guest';
-                      const initials = name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
-                      const isStale = Date.now() - new Date(g.updated_at).getTime() > 60000;
-                      const distKm = userPos ? haversineKm(userPos, { lat: g.lat, lng: g.lng }) : null;
-                      const modeObj = TRAVEL[(g.travel_mode as TMode) || 'car'];
-                      const etaStr = distKm ? fmtEta(distKm, modeObj.speed) : '—';
-                      const gradients = [
-                        'linear-gradient(135deg,#E8B86D,#C8903D)',
-                        'linear-gradient(135deg,#3ECFB2,#2AA893)',
-                        'linear-gradient(135deg,#A29BFE,#6C5CE7)',
-                        'linear-gradient(135deg,#FD79A8,#E84393)',
-                      ];
-                      const statusColor = isStale ? '#888' : distKm && distKm < 0.5 ? '#3ECFB2' : distKm && distKm < 5 ? '#E8B86D' : '#A29BFE';
-                      const statusBg = isStale ? 'rgba(255,255,255,0.06)' : distKm && distKm < 0.5 ? 'rgba(62,207,178,0.2)' : distKm && distKm < 5 ? 'rgba(232,184,109,0.2)' : 'rgba(162,155,254,0.2)';
-                      const statusLabel = isStale ? '⚫ Offline' : distKm && distKm < 0.5 ? '🟢 Arriving' : distKm && distKm < 5 ? '🟡 Nearby' : '🔵 En route';
-                      return (
-                        <div key={g.user_id} className="rounded-[14px] p-3 mb-2"
-                          style={{ background: 'rgba(255,255,255,0.04)', border: isStale ? '1px solid rgba(255,255,255,0.04)' : '1px solid rgba(62,207,178,0.15)' }}>
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-bold flex-shrink-0"
-                              style={{ background: gradients[i % gradients.length], color: '#0D0F14' }}>
-                              {initials}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="text-[13px] font-bold truncate" style={{ color: 'white' }}>{name}</div>
-                              <div className="text-[10px]" style={{ color: '#888' }}>
-                                {g.bookings?.properties?.title || 'Your property'} · Check-in {g.bookings?.check_in}
-                              </div>
-                            </div>
-                            <div className="text-[10px] px-2 py-1 rounded-[20px] font-bold"
-                              style={{ background: statusBg, color: statusColor }}>
-                              {statusLabel}
-                            </div>
-                          </div>
-                          <div className="flex gap-2 mb-2">
-                            <div className="flex-1 rounded-[10px] p-2 text-center" style={{ background: 'rgba(232,184,109,0.08)' }}>
-                              <div className="text-[13px] font-black" style={{ color: '#E8B86D' }}>{distKm !== null ? fmtDist(distKm) : '—'}</div>
-                              <div className="text-[9px]" style={{ color: '#888' }}>DISTANCE</div>
-                            </div>
-                            <div className="flex-1 rounded-[10px] p-2 text-center" style={{ background: 'rgba(62,207,178,0.08)' }}>
-                              <div className="text-[13px] font-black" style={{ color: '#3ECFB2' }}>{etaStr} {modeObj.icon}</div>
-                              <div className="text-[9px]" style={{ color: '#888' }}>ETA</div>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => { if (g.lat && g.lng && mapInstance.current) mapInstance.current.flyTo([g.lat, g.lng], 16, { duration: 1.2 }); }}
-                              className="flex-1 py-2 rounded-[10px] border-none cursor-pointer text-[11px] font-bold"
-                              style={{ background: 'rgba(232,184,109,0.12)', color: '#E8B86D' }}>
-                              📍 Find on map
-                            </button>
-                            <button onClick={() => navigate('/messages')}
-                              className="flex-1 py-2 rounded-[10px] border-none cursor-pointer text-[11px] font-bold"
-                              style={{ background: 'rgba(62,207,178,0.12)', color: '#3ECFB2' }}>
-                              💬 Message
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </>
-                )}
-
-                <div className="text-[10px] font-bold mt-3 mb-2" style={{ color: '#888', letterSpacing: 1 }}>QUICK ACTIONS</div>
-                <div className="grid grid-cols-3 gap-2">
-                  {[{ icon: '🔑', label: 'Send Code' }, { icon: '📋', label: 'Check-in' }, { icon: '📍', label: 'Share Pin' }].map((a, i) => (
-                    <button key={i} className="py-3 rounded-[12px] border-none cursor-pointer flex flex-col items-center gap-1"
-                      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                      <span className="text-[20px]">{a.icon}</span>
-                      <span className="text-[10px]" style={{ color: '#aaa' }}>{a.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+          
         <button onClick={flyToMe}
           className="absolute z-[1002] w-11 h-11 rounded-full flex items-center justify-center border-none cursor-pointer text-[20px]"
           style={{ right: 16, bottom: bottomOffset, background: 'rgba(13,15,20,0.92)', border: '1.5px solid rgba(232,184,109,0.3)', backdropFilter: 'blur(20px)', boxShadow: '0 4px 16px rgba(0,0,0,0.4)', transition: 'bottom 0.3s ease' }}>
@@ -1386,6 +1260,7 @@ export default function MapPage() {
             </motion.div>
           )}
         </AnimatePresence>
+        </AnimatePresence>
 
         {userPos && (
           <div className="absolute z-[1002] left-4" style={{ bottom: bottomOffset, transition: 'bottom 0.3s ease' }}>
@@ -1400,7 +1275,7 @@ export default function MapPage() {
         )}
 
       </div>
-      <BottomNav />
+      <BottomNav type={currentUser?.role === 'host' ? 'host' : 'guest'} />
     </PhoneFrame>
   );
 }

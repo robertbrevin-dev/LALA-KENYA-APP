@@ -63,13 +63,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const { data: { session } } = await supabase.auth.getSession();
       if (!mounted) return;
       if (session?.user) {
+        // Fetch user profile to get role from profiles table
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
+        
+        console.log('🔍 Auth Debug:', {
+          userId: session.user.id,
+          profile: profile,
+          profileRole: profile?.role,
+          finalRole: profile?.role || 'guest'
+        });
+        
         setCurrentUser({
           id: session.user.id,
           name: session.user.user_metadata?.full_name || 'User',
           email: session.user.email || '',
           phone: session.user.user_metadata?.phone || '',
           avatar: session.user.user_metadata?.avatar_url || undefined,
-          role: session.user.user_metadata?.role || 'guest',
+          role: profile?.role || 'guest',
         });
       } else {
         setCurrentUser(null);
@@ -88,18 +98,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return;
       }
       if (session?.user) {
-        setCurrentUser({
-          id: session.user.id,
-          name: session.user.user_metadata?.full_name || 'User',
-          email: session.user.email || '',
-          phone: session.user.user_metadata?.phone || '',
-          avatar: session.user.user_metadata?.avatar_url || undefined,
-          role: session.user.user_metadata?.role || 'guest',
-        });
+        // Keep loading=true until role is confirmed from DB
+        setLoading(true);
+        const fetchProfile = async () => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role, full_name, avatar_url')
+            .eq('id', session.user.id)
+            .single();
+          if (!mounted) return;
+          setCurrentUser({
+            id: session.user.id,
+            name: profile?.full_name || session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'User',
+            email: session.user.email || '',
+            phone: session.user.user_metadata?.phone || '',
+            avatar: profile?.avatar_url || session.user.user_metadata?.avatar_url || undefined,
+            // ALWAYS read role from profiles table — never from auth metadata on login
+            role: (profile?.role as 'guest' | 'host') || 'guest',
+          });
+          // Set loading=false ONLY after role is known
+          setLoading(false);
+        };
+        fetchProfile();
       } else {
         setCurrentUser(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => {
@@ -136,7 +160,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           primary_image_url, property_type, badge, bedrooms, beds, max_guests,
           description, amenities, host_id, is_featured, instant_book,
           house_rules, cancellation_policy, cleaning_fee, response_time,
-          response_rate, listing_status
+          response_rate, listing_status, latitude, longitude, image_urls
         `)
         .eq('listing_status', 'approved')
         .order('created_at', { ascending: false });
@@ -151,7 +175,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const mapped: Property[] = data.map((p: any) => ({
           id: p.id,
           title: p.title,
-          location: p.area || p.location,
+          location: p.area || (p.location?.startsWith?.("POINT") ? "" : p.location) || "",
+          latitude: p.latitude ?? null,
+          images: p.image_urls ?? [],
+          longitude: p.longitude ?? null,
           price: p.price_per_night,
           rating: p.rating ?? 0,
           reviews: p.total_reviews ?? 0,
@@ -182,45 +209,90 @@ export function AppProvider({ children }: { children: ReactNode }) {
     fetchProperties();
   }, []);
 
-  // Add mock conversations for testing phone calling feature
+  // Load real conversations when user is logged in
   useEffect(() => {
-    const mockConversations: Conversation[] = [
-      {
-        id: 'conv-1',
-        bookingId: 'booking-1',
-        propertyTitle: 'Cozy Studio in Kilimani',
-        propertyImage: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800',
-        participantId: 'host-1',
-        participantName: 'Sarah Kimani',
-        participantPhone: '+254712345678',
-        participantRole: 'host',
-        lastMessage: 'The apartment is available for your dates!',
-        lastMessageTime: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-        unreadCount: 2,
-        messages: [
-          {
-            id: 'msg-1',
-            conversationId: 'conv-1',
-            senderId: 'guest-1',
-            senderName: 'John Doe',
-            text: 'Hi, is the apartment available next weekend?',
-            timestamp: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
-            read: true,
-          },
-          {
-            id: 'msg-2',
-            conversationId: 'conv-1',
-            senderId: 'host-1',
-            senderName: 'Sarah Kimani',
-            text: 'The apartment is available for your dates!',
-            timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-            read: false,
-          },
-        ],
-      },
-    ];
-    setConversations(mockConversations);
-  }, []);
+    if (!currentUser) {
+      setConversations([]);
+      return;
+    }
+    // Conversations are created via createConversation() from real bookings
+    // No mock data — only real data from Supabase bookings
+  }, [currentUser]);
+
+  // Load user favorites when logged in
+  useEffect(() => {
+    if (!currentUser) {
+      setFavorites([]);
+      return;
+    }
+
+    async function fetchFavorites() {
+      const { data, error } = await supabase
+        .from('favorites')
+        .select('property_id')
+        .eq('user_id', currentUser?.id);
+
+      if (error) {
+        console.error('Favorites fetch error:', error.message);
+        return;
+      }
+
+      if (data) {
+        const favoriteIds = data.map(f => f.property_id);
+        setFavorites(favoriteIds);
+        
+        // Update properties to reflect favorite status
+        setProperties(prev => prev.map(p => ({
+          ...p,
+          isFavorite: favoriteIds.includes(p.id)
+        })));
+      }
+    }
+
+    fetchFavorites();
+  }, [currentUser]);
+
+  // Load user bookings when logged in
+  useEffect(() => {
+    if (!currentUser) {
+      setBookings([]);
+      return;
+    }
+
+    async function fetchBookings() {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('*')
+        .eq('guest_id', currentUser?.id)
+        .order('check_in', { ascending: false });
+
+      if (error) {
+        console.error('Bookings fetch error:', error.message);
+        return;
+      }
+
+      if (data) {
+        const mappedBookings: Booking[] = data.map(b => ({
+          id: b.id,
+          propertyId: b.property_id,
+          propertyTitle: b.property_title,
+          propertyLocation: b.property_location,
+          guestId: b.guest_id,
+          guestName: b.guest_name,
+          guestPhone: b.guest_phone,
+          checkIn: b.check_in,
+          checkOut: b.check_out,
+          nights: b.nights,
+          totalAmount: b.total_amount,
+          status: b.status,
+          createdAt: b.created_at,
+        }));
+        setBookings(mappedBookings);
+      }
+    }
+
+    fetchBookings();
+  }, [currentUser]);
 
   const toggleFavorite = async (propertyId: string) => {
     if (!currentUser) return;

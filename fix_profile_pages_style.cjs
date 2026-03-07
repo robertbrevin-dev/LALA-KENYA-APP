@@ -1,0 +1,16 @@
+const fs = require('fs');
+let c = fs.readFileSync('src/app/pages/ProfilePages.tsx', 'utf8');
+c = c.replace(/color: 'var\(--lala-white\)'/g, "color: 'white'");
+c = c.replace(/color: 'var\(--lala-soft\)'/g, "color: 'rgba(255,255,255,0.6)'");
+c = c.replace(/color: 'var\(--lala-muted\)'/g, "color: 'rgba(255,255,255,0.35)'");
+c = c.replace(/color: 'var\(--lala-gold\)'/g, "color: '#E8B86D'");
+c = c.replace(/color: 'var\(--lala-teal\)'/g, "color: '#3ECFB2'");
+c = c.replace(/color: 'var\(--lala-night\)'/g, "color: '#0D0F14'");
+c = c.replace(/background: 'var\(--lala-card\)', border: '1px solid var\(--lala-border\)'/g, "background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)'");
+c = c.replace(/background: 'var\(--lala-card\)'/g, "background: 'rgba(255,255,255,0.04)'");
+c = c.replace(/border: '1px solid var\(--lala-border\)'/g, "border: '1px solid rgba(255,255,255,0.08)'");
+c = c.replace(/borderTop: '1px solid var\(--lala-border\)'/g, "borderTop: '1px solid rgba(255,255,255,0.08)'");
+c = c.replace(/borderBottom: '1px solid var\(--lala-border\)'/g, "borderBottom: '1px solid rgba(255,255,255,0.08)'");
+c = c.replace(/borderBottom: i < 2 \? '1px solid var\(--lala-border\)' : 'none'/g, "borderBottom: i < 2 ? '1px solid rgba(255,255,255,0.08)' : 'none'");
+fs.writeFileSync('src/app/pages/ProfilePages.tsx', c);
+console.log('done');

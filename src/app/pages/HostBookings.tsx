@@ -127,7 +127,7 @@ export default function HostBookings() {
       <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
         <BackRefreshBar />
         {/* Header */}
-        <div className="px-6 pt-14 pb-5">
+        <div style={{ padding: "56px 24px 20px", background: "linear-gradient(180deg, #061412 0%, #080608 100%)", borderBottom: "1px solid rgba(62,207,178,0.08)" }}>
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             className="text-[28px] mb-1"
             style={{ fontFamily: 'var(--font-playfair)', fontWeight: 900, color: 'var(--lala-white)' }}>
@@ -144,8 +144,8 @@ export default function HostBookings() {
               <button key={f} onClick={() => setFilter(f as any)}
                 className="px-4 py-2 rounded-[20px] text-[12px] whitespace-nowrap border-none cursor-pointer"
                 style={{
-                  background: filter === f ? 'var(--lala-gold)' : 'var(--lala-card)',
-                  color: filter === f ? 'var(--lala-night)' : 'var(--lala-muted)',
+                  background: filter === f ? '#3ECFB2' : 'rgba(62,207,178,0.05)',
+                  color: filter === f ? '#061412' : 'rgba(255,255,255,0.5)',
                   fontWeight: filter === f ? 700 : 500,
                   border: filter === f ? 'none' : '1px solid var(--lala-border)',
                 }}>
@@ -176,7 +176,7 @@ export default function HostBookings() {
                 {/* Guest Info */}
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-12 h-12 rounded-full flex items-center justify-center text-[18px] flex-shrink-0"
-                    style={{ background: 'linear-gradient(135deg, var(--lala-gold), #C8903D)', fontWeight: 700, color: 'var(--lala-night)' }}>
+                    style={{ background: 'linear-gradient(135deg, #061412, #0a1f1b)', border: '2px solid #3ECFB2', fontWeight: 700, color: '#3ECFB2' }}>
                     {booking.guest_name?.[0] || 'G'}
                   </div>
                   <div className="flex-1">
