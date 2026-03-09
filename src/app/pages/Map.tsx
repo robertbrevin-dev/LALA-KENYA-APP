@@ -419,7 +419,7 @@ export default function MapPage() {
           user_id: currentUser.id,
              
 
-          booking_id: bookingid,
+          booking_id: bookingId,
           lat,
           lng,
           accuracy_m: accuracy ?? null,
@@ -569,7 +569,6 @@ export default function MapPage() {
       zoomControl: false,
       attributionControl: false,
       dragging: true,
-      tap: true,
       tapTolerance: 15,
       touchZoom: true,
       doubleClickZoom: true,
@@ -582,13 +581,17 @@ export default function MapPage() {
       { maxZoom: 19, subdomains: 'abcd' }
     ).addTo(map);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
-    const credit = L.control({ position: 'bottomleft' });
-    credit.onAdd = () => {
-      const d = document.createElement('div');
-      d.innerHTML = '<div style="background:rgba(13,15,20,0.9);color:#E8B86D;font-size:10px;font-weight:800;padding:4px 10px;border-radius:8px;font-family:sans-serif;letter-spacing:1px;">LALA KENYA</div>';
-      return d;
-    };
-    credit.addTo(map);
+    const CreditControl = L.Control.extend({
+      options: {
+        position: 'bottomleft'
+      },
+      onAdd: function(map: L.Map) {
+        const d = document.createElement('div');
+        d.innerHTML = '<div style="background:rgba(13,15,20,0.9);color:#E8B86D;font-size:10px;font-weight:800;padding:4px 10px;border-radius:8px;font-family:sans-serif;letter-spacing:1px;">LALA KENYA</div>';
+        return d;
+      }
+    });
+    new CreditControl().addTo(map);
     navigator.geolocation?.getCurrentPosition(
       pos => { const p = { lat: pos.coords.latitude, lng: pos.coords.longitude }; setUserPos(p); addUserMarker(L, map, p); },
       () => setGpsError(true),
@@ -724,6 +727,8 @@ export default function MapPage() {
   };
   const cardOpen = (selected || selectedLandmark || searchPin) && !navigating;
   const bottomOffset = cardOpen ? 360 : 90;
+
+  console.log("MAP BOTTOMNAV ROLE:", currentUser?.role, sessionStorage.getItem("lala-force-role"));
 
   return (
     <PhoneFrame>
@@ -1294,7 +1299,6 @@ export default function MapPage() {
         )}
 
       </div>
-      {console.log("MAP BOTTOMNAV ROLE:", currentUser?.role, sessionStorage.getItem("lala-force-role"))}
       <BottomNav type={currentUser?.role === 'host' ? 'host' : 'guest'} />
     </PhoneFrame>
   );

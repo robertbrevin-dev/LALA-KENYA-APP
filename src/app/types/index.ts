@@ -4,6 +4,8 @@ export interface Property {
   id: string;
   title: string;
   location: string;
+  latitude: number | null;
+  longitude: number | null;
   price: number;
   rating: number;
   reviews: number;

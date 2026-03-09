@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import PropertyCard from '../components/PropertyCard';
@@ -22,6 +22,11 @@ export default function Home() {
   const { properties, currentUser } = useApp();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [agentStatus, setAgentStatus] = useState<'idle'|'listening'|'thinking'|'speaking'>('idle');
+  const [agentText, setAgentText] = useState('');
+  const [agentHistory, setAgentHistory] = useState<{role:string;content:string}[]>([]);
+  const agentRecRef = useRef<any>(null);
+  const agentSynthRef = useRef<SpeechSynthesisUtterance|null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterCategory>('All');
   const [profileOpen, setProfileOpen] = useState(false);
   const [seeAll, setSeeAll] = useState<null | 'nearby' | 'top'>(null);
@@ -41,8 +46,119 @@ export default function Home() {
   useEffect(() => {
     if (!highlightedProperty) return;
     const id = setTimeout(() => setHighlightedProperty(null), 2000);
-    return () => clearTimeout(id);
+  return () => clearTimeout(id);
   }, [highlightedProperty]);
+
+
+  const buildSystemPrompt = () => {
+    const propList = properties.map(p =>
+      `- "${p.title}" in ${p.location}: Ksh ${p.price?.toLocaleString()}/night, ${p.category}, ${p.bedrooms ?? 1} bed(s), rating ${p.rating ?? 'N/A'}. ${p.description ?? ''}`
+    ).join('\n');
+    return `You are LALA Concierge — the warm, elegant voice reception agent for LALA Kenya, a luxury short-stay platform. You help guests find perfect stays across Kenya with the confidence of a local expert and the warmth of a personal concierge.
+
+CURRENT AVAILABLE PROPERTIES:
+${propList || 'Properties loading...'}
+
+YOUR KNOWLEDGE:
+- Nairobi areas: Karen (leafy suburb, 14km from CBD, near Giraffe Centre & Karen Blixen Museum), Westlands (vibrant, 5km from CBD, near Sarit Centre & nightlife), Kilimani (quiet residential, 4km CBD), Lavington (upscale, 7km CBD), Runda (gated luxury, 15km CBD), Muthaiga (embassy zone, 8km CBD), Langata (near Nairobi National Park), Parklands (diverse, 4km CBD)
+- Mombasa areas: Nyali (beachfront, 5km from city), Diani (south coast, white sand), Bamburi (north coast, resort belt)
+- Common landmarks: JKIA Airport (18km from CBD), Wilson Airport (5km CBD), Two Rivers Mall, Garden City Mall, The Hub Karen, Westgate Mall
+- Transport: Uber/Bolt widely available, 20min CBD to Westlands, 35min CBD to Karen, matatus available
+
+YOUR ROLE:
+1. Welcome guests warmly on first contact
+2. Ask about: area preference, budget (Ksh), number of guests, check-in/out dates, vibe (quiet/social/beach/city)
+3. Match from available properties above — give specific details: price, location, what's nearby, distance to landmarks
+4. If asked directions: give realistic drive times and nearest landmarks
+5. Offer to book directly or connect to host
+6. Speak max 3 sentences per response unless listing properties
+7. Switch naturally between English and Swahili based on guest
+8. Never say "I don't know" — always give your best helpful answer
+9. Be warm, confident, never robotic. You are LALA.`;
+  };
+  const speakText = (text: string, autoListen = false) => {
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.rate = 1.0; utt.pitch = 1.05; utt.volume = 1;
+    const voices = window.speechSynthesis.getVoices();
+    const preferred = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Female') || v.name.includes('Zira') || v.name.includes('Hazel') || v.name.includes('Susan'))) || voices.find(v => v.lang.startsWith('en')) || voices[0];
+    if (preferred) utt.voice = preferred;
+    utt.onend = () => {
+      setAgentStatus('idle');
+      setAgentText('');
+      if (autoListen) {
+        setTimeout(() => {
+          const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+          if (!SR) return;
+          const rec = new SR();
+          rec.lang = 'en-KE'; rec.interimResults = false; rec.maxAlternatives = 1;
+          rec.onstart = () => { setAgentStatus('listening'); setAgentText('Listening...'); };
+          rec.onresult = (e: any) => { const t = e.results[0][0].transcript; setAgentText(t); askAgent(t); };
+          rec.onerror = () => { setAgentStatus('idle'); setAgentText(''); };
+          agentRecRef.current = rec;
+          rec.start();
+        }, 600);
+      }
+    };
+    agentSynthRef.current = utt;
+    setAgentStatus('speaking');
+    setAgentText(text);
+    window.speechSynthesis.speak(utt);
+  };
+
+  const askAgent = async (transcript: string) => {
+    setAgentStatus('thinking');
+    setAgentText('Thinking...');
+    const newHistory = [...agentHistory, { role: 'user', content: transcript }];
+    setAgentHistory(newHistory);
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': import.meta.env.VITE_ANTHROPIC_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-5',
+          max_tokens: 220,
+          system: buildSystemPrompt(),
+          messages: newHistory
+        })
+      });
+      const data = await res.json();
+      const reply = data.content?.[0]?.text || data.error?.message || 'Samahani, please try again.';
+      setAgentHistory(prev => [...prev, { role: 'assistant', content: reply }]);
+      speakText(reply, true);
+    } catch {
+      speakText('Samahani, connection issue. Please try again.', false);
+    }
+  };
+
+  const listenNow = () => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) { speakText('Sorry, please use Chrome for voice.', false); return; }
+    const rec = new SR();
+    rec.lang = 'en-KE'; rec.interimResults = false; rec.maxAlternatives = 1;
+    rec.onstart = () => { setAgentStatus('listening'); setAgentText('Listening...'); };
+    rec.onresult = (e: any) => { const t = e.results[0][0].transcript; setAgentText(t); askAgent(t); };
+    rec.onerror = () => { setAgentStatus('idle'); setAgentText(''); };
+    agentRecRef.current = rec;
+    rec.start();
+  };
+
+  const startListening = () => {
+    if (agentStatus !== 'idle') {
+      window.speechSynthesis.cancel();
+      if (agentRecRef.current) { try { agentRecRef.current.stop(); } catch {} }
+      setAgentStatus('idle');
+      setAgentText('');
+      return;
+    }
+    if (agentHistory.length === 0) {
+      const name = currentUser?.name?.split(' ')[0] || 'there';
+      speakText(`Welcome to LALA Kenya — your quickest way to finding the perfect place to stay. I'm your personal concierge. How may I help you today, ${name}?`, true);
+      return;
+    }
+    listenNow();
+  };
+
 
   return (
     <PhoneFrame>
@@ -116,9 +232,12 @@ export default function Home() {
               style={{ color: 'white', fontFamily: 'var(--font-dm-sans)' }}
             />
             {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="border-none bg-transparent cursor-pointer text-[16px]"
-                style={{ color: 'rgba(255,255,255,0.3)' }}>×</button>
+              <button onClick={() => setSearchQuery("")} className="border-none bg-transparent cursor-pointer text-[16px]"
+                style={{ color: "rgba(255,255,255,0.3)" }}>×</button>
             )}
+            <button onClick={startListening} className="border-none cursor-pointer flex items-center justify-center flex-shrink-0" style={{ width:36, height:36, borderRadius:"50%", background:agentStatus==="idle"?"linear-gradient(135deg,#E8B86D,#C8903D)":agentStatus==="listening"?"linear-gradient(135deg,#ff6b6b,#ee5a24)":agentStatus==="thinking"?"linear-gradient(135deg,#a29bfe,#6c5ce7)":"linear-gradient(135deg,#3ECFB2,#2AA893)", boxShadow:"0 0 0 4px rgba(232,184,109,0.2),0 0 20px rgba(232,184,109,0.5)", transition:"all 0.3s", padding:0 }} title="Ask LALA AI">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" fill="#0D0F14"/><path d="M5 11C5 14.866 8.134 18 12 18C15.866 18 19 14.866 19 11" stroke="#0D0F14" strokeWidth="2.5" strokeLinecap="round"/><line x1="12" y1="18" x2="12" y2="22" stroke="#0D0F14" strokeWidth="2.5" strokeLinecap="round"/><line x1="9" y1="22" x2="15" y2="22" stroke="#0D0F14" strokeWidth="2.5" strokeLinecap="round"/></svg>
+            </button>
           </motion.div>
         </div>
 
