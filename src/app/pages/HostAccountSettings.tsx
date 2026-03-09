@@ -11,8 +11,24 @@ export default function HostAccountSettings() {
   const [phone, setPhone] = useState(currentUser?.phone || '');
   const [permitZone, setPermitZone] = useState('');
   const [loading, setLoading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(currentUser?.avatar_url || '');
+  const [avatarLoading, setAvatarLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentUser?.id) return;
+    setAvatarLoading(true);
+    const ext = file.name.split('.').pop();
+    const path = 'avatars/' + currentUser.id + '.' + ext;
+    const { error: upErr } = await supabase.storage.from('property-images').upload(path, file, { upsert: true });
+    if (upErr) { setError(upErr.message); setAvatarLoading(false); return; }
+    const { data } = supabase.storage.from('property-images').getPublicUrl(path);
+    await supabase.from('profiles').update({ avatar_url: data.publicUrl }).eq('id', currentUser.id);
+    setAvatarUrl(data.publicUrl);
+    setAvatarLoading(false);
+    setSuccess(true); setTimeout(() => setSuccess(false), 3000);
+  };
   const handleSave = async () => {
     if (!currentUser?.id) return;
     setLoading(true); setError(''); setSuccess(false);
@@ -30,6 +46,18 @@ export default function HostAccountSettings() {
           <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>Update your host account information</div>
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', scrollbarWidth: 'none' }}>
+          <div style={{ marginBottom: 24, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ position: 'relative', marginBottom: 8 }}>
+              <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'rgba(62,207,178,0.1)', border: '2px solid rgba(62,207,178,0.3)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {avatarUrl ? <img src={avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: 28, fontWeight: 700, color: TEAL }}>{(currentUser?.name || 'H').charAt(0).toUpperCase()}</span>}
+              </div>
+              <label htmlFor="avatar-upload" style={{ position: 'absolute', bottom: 0, right: 0, width: 26, height: 26, borderRadius: '50%', background: TEAL, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '2px solid #061412', fontSize: 13 }}>
+                {avatarLoading ? '...' : 'edit'}
+              </label>
+              <input id="avatar-upload" type="file" accept="image/*" onChange={handleAvatarUpload} style={{ display: 'none' }} />
+            </div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>Tap to update profile photo</div>
+          </div>
           <div style={{ marginBottom: 20 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(62,207,178,0.6)', letterSpacing: 1, marginBottom: 8 }}>FULL NAME</div>
             <input value={name} onChange={e => setName(e.target.value)} placeholder="Your full name" style={{ width: '100%', padding: '14px 16px', borderRadius: 14, fontSize: 14, outline: 'none', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(62,207,178,0.15)', color: 'white', boxSizing: 'border-box' }} />

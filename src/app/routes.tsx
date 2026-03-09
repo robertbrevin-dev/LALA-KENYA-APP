@@ -23,6 +23,8 @@ import HostListings from './pages/HostListings';
 import HostBookings from './pages/HostBookings';
 import HostEarnings from './pages/HostEarnings';
 import HostProfile from './pages/HostProfile';
+import HostAccountSettings from './pages/HostAccountSettings';
+import HostResources from './pages/HostResources';
 import NotFound from './pages/NotFound';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
@@ -69,8 +71,8 @@ const routes = [
       { path: 'host/profile', Component: HostProfile },
       { path: 'host/settings/payouts', Component: HostPayoutMethods },
       { path: 'host/settings/insights', Component: PerformanceInsights },
-      { path: 'host/settings/resources', Component: HelpCenter },
-      { path: 'host/settings/account', Component: PersonalInformation },
+      { path: 'host/settings/resources', Component: HostResources },
+      { path: 'host/settings/account', Component: HostAccountSettings },
       { path: 'login', Component: GuestLogin },         // /login now goes to guest login
       { path: 'login/guest', Component: GuestLogin },
       { path: 'login/host', Component: HostLogin },
