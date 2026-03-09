@@ -398,7 +398,7 @@ export function PaymentMethods() {
                 <div className="w-12 h-12 rounded-[12px] flex items-center justify-center text-[20px]" style={{ background: '#00a651' }}>📱</div>
                 <div>
                   <div className="text-[14px]" style={{ color: 'white', fontWeight: 600 }}>M-Pesa</div>
-                  <div className="text-[12px]" style={{ color: 'rgba(255,255,255,0.35)' }}>+254 712 345 678</div>
+                  <div className="text-[12px]" style={{ color: 'rgba(255,255,255,0.35)' }}>{currentUser?.phone || 'No phone added'}</div>
                 </div>
               </div>
               <div className="text-[11px] px-2.5 py-1 rounded-[20px]" style={{ background: 'rgba(62,207,178,0.12)', color: '#3ECFB2', fontWeight: 600 }}>DEFAULT</div>
@@ -638,7 +638,7 @@ export function TermsAndPolicies() {
 
 export function HostPayoutMethods() {
   const navigate = useNavigate();
-  const [mpesaNumber, setMpesaNumber] = useState('+254700000001');
+  const [mpesaNumber, setMpesaNumber] = useState(currentUser?.phone || '');
 
   return (
     <PhoneFrame>
@@ -720,8 +720,8 @@ export function HostPayoutMethods() {
 export function PerformanceInsights() {
   const navigate = useNavigate();
   const months = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
-  const earnings = [45000, 52000, 68000, 61000, 69000, 84500];
-  const maxEarning = Math.max(...earnings);
+  const earnings: number[] = [];
+  const maxEarning = 1;
 
   return (
     <PhoneFrame>

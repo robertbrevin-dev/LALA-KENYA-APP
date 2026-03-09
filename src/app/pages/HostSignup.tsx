@@ -57,6 +57,9 @@ export default function HostSignup() {
 
   // Shared
   const [loading, setLoading] = useState(false);
+  const [emailStep, setEmailStep] = useState<'form'|'otp'>('form');
+  const [emailOtp, setEmailOtp] = useState(['','','','','','']);
+  const [emailResend, setEmailResend] = useState(0);
   const [gLoading, setGLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -172,6 +175,20 @@ export default function HostSignup() {
     setLoading(false); setSuccess(true);
   };
 
+  const handleVerifyEmailOtp = async () => {
+    const code = emailOtp.join('');
+    if (code.length < 6) return;
+    setLoading(true); setError('');
+    const { error } = await supabase.auth.verifyOtp({ email: email.trim(), token: code, type: 'email' });
+    if (error) { setError('Invalid code. Please try again.'); setLoading(false); return; }
+    setLoading(false); navigate('/host/dashboard');
+  };
+  const handleResendEmailOtp = async () => {
+    if (emailResend > 0) return;
+    await supabase.auth.resend({ type: 'signup', email: email.trim() });
+    setEmailResend(60);
+    const t = setInterval(() => setEmailResend(v => { if (v<=1){clearInterval(t);return 0;} return v-1;}),1000);
+  };
   const fullPhone = `${country.code}${phone.replace(/^0+/, '').replace(/\D/g, '')}`;
 
   const handleSendOTP = async () => {
@@ -233,6 +250,29 @@ export default function HostSignup() {
     </div>
   );
 
+  if (emailStep === 'otp') return (
+    <div style={{ background: '#03020a', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ maxWidth: 340, width: '100%', textAlign: 'center' }}>
+        <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(62,207,178,0.1)', border: '2px solid #3ECFB2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3ECFB2" strokeWidth="2" strokeLinecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg>
+        </div>
+        <div style={{ fontFamily: 'var(--font-playfair)', fontSize: 22, fontWeight: 900, color: 'white', marginBottom: 8 }}>Check your email</div>
+        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', marginBottom: 6 }}>We sent a 6-digit code to</div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: '#3ECFB2', marginBottom: 28 }}>{email}</div>
+        <OtpRow otp={emailOtp} onChange={(i,v) => { const n=[...emailOtp]; n[i]=v; setEmailOtp(n); }} idPrefix="host-email-otp" accentColor="#3ECFB2" />
+        {error && <div style={{ marginTop: 14, fontSize: 13, color: '#FF6B6B' }}>{error}</div>}
+        <button onClick={handleVerifyEmailOtp} disabled={loading || emailOtp.join('').length < 6}
+          style={{ width: '100%', marginTop: 24, padding: '15px', borderRadius: 14, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 15, background: emailOtp.join('').length === 6 ? 'linear-gradient(135deg,#3ECFB2,#2AA893)' : 'rgba(255,255,255,0.06)', color: emailOtp.join('').length === 6 ? '#03020a' : 'rgba(255,255,255,0.3)' }}>
+          {loading ? 'Verifying...' : 'Verify Email'}
+        </button>
+        <button onClick={handleResendEmailOtp} disabled={emailResend > 0}
+          style={{ width: '100%', marginTop: 12, padding: '12px', borderRadius: 14, border: '1px solid rgba(255,255,255,0.08)', background: 'transparent', color: emailResend > 0 ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.6)', cursor: emailResend > 0 ? 'default' : 'pointer', fontSize: 13 }}>
+          {emailResend > 0 ? `Resend code in ${emailResend}s` : 'Resend Code'}
+        </button>
+        <button onClick={() => setEmailStep('form')} style={{ marginTop: 16, background: 'none', border: 'none', color: 'rgba(255,255,255,0.35)', fontSize: 12, cursor: 'pointer' }}>Back to signup</button>
+      </div>
+    </div>
+  );
   return (
     <div className="flex items-center justify-center min-h-screen p-4" style={{ background: '#06060c' }}>
       <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}
@@ -333,7 +373,7 @@ export default function HostSignup() {
                       <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowPicker(true)}
                         className="flex items-center gap-2 px-3 py-3.5 rounded-[14px] border-none cursor-pointer flex-shrink-0"
                         style={{ background: CARD, border: BORDER, minWidth: 96 }}>
-                        <span className="text-[22px] leading-none">{country.flag}</span>
+                        <img src={`https://flagcdn.com/w40/${country.abbr.toLowerCase()}.png`} alt={country.abbr} style={{ width:24, height:16, objectFit:"cover", borderRadius:3 }} />
                         <div className="text-left">
                           <div className="text-[12px] font-bold" style={{ color: 'white' }}>{country.code}</div>
                           <div className="text-[9px]" style={{ color: 'rgba(255,255,255,0.3)' }}>{country.abbr}</div>
@@ -414,7 +454,7 @@ export default function HostSignup() {
                   <div className="flex flex-col gap-3">
                     <div className="text-center">
                       <div className="text-[13px] font-bold mb-1" style={{ color: 'white' }}>Enter your SMS code</div>
-                      <div className="text-[12px]" style={{ color: 'rgba(255,255,255,0.4)' }}>{country.flag} {country.code} {phone}</div>
+                      <div className="text-[12px]" style={{ color: 'rgba(255,255,255,0.4)' }}>{country.code} {phone}</div>
                     </div>
                     <OtpRow otp={otp} onChange={setOtpDigit} idPrefix="hsig-otp" accentColor={TEAL} />
                     <div className="text-center">

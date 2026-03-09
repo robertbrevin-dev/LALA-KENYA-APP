@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Property, User, Booking, Conversation, Message, CallStatus } from '../types';
 import { supabase } from '../../lib/supabase';
-import { demoProperties } from '../mock/properties';
 
 interface AppContextType {
   properties: Property[];
@@ -183,7 +182,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .order('created_at', { ascending: false });
 
       if (error) {
-        setProperties(demoProperties);
+        setProperties([]); // No mock data — real listings only
         setLoading(false);
         return;
       }

@@ -27,6 +27,7 @@ export function LanguageSwitcher({
 
   if (compact) {
     return (
+      <div className="relative">
       <motion.button
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
@@ -47,7 +48,8 @@ export function LanguageSwitcher({
           {isOpen ? '▲' : '▼'}
         </span>
 
-        <AnimatePresence>
+      </motion.button>
+      <AnimatePresence>
           {isOpen && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
@@ -101,7 +103,7 @@ export function LanguageSwitcher({
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.button>
+      </div>
     );
   }
 

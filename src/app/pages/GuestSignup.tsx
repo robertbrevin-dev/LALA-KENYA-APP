@@ -105,9 +105,28 @@ export default function GuestSignup() {
     if (data.user) {
       await supabase.from('profiles').upsert({ id: data.user.id, full_name: name.trim(), email: email.trim(), role: 'guest' });
     }
-    setLoading(false); setSuccess(true);
+    setLoading(false);
+    setEmailStep('otp');
+    setEmailResend(60);
+    setEmailOtp(['','','','','','']);
+    const t = setInterval(() => setEmailResend(v => { if (v <= 1) { clearInterval(t); return 0; } return v - 1; }), 1000);
   };
 
+  const handleVerifyEmailOtp = async () => {
+    const code = emailOtp.join('');
+    if (code.length < 6) return;
+    setLoading(true); setError('');
+    const { error } = await supabase.auth.verifyOtp({ email: email.trim(), token: code, type: 'email' });
+    if (error) { setError('Invalid code. Please try again.'); setLoading(false); return; }
+    setLoading(false);
+    navigate('/home');
+  };
+  const handleResendEmailOtp = async () => {
+    if (emailResend > 0) return;
+    await supabase.auth.resend({ type: 'signup', email: email.trim() });
+    setEmailResend(60);
+    const t = setInterval(() => setEmailResend(v => { if (v <= 1) { clearInterval(t); return 0; } return v - 1; }), 1000);
+  };
   const fullPhone = `${country.code}${phone.replace(/^0+/, '').replace(/\D/g, '')}`;
 
   const handleSendOTP = async () => {
@@ -307,7 +326,7 @@ export default function GuestSignup() {
                     <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowPicker(true)}
                       className="flex items-center gap-2 px-3 py-3.5 rounded-[14px] border-none cursor-pointer flex-shrink-0"
                       style={{ background: CARD, border: BORDER, minWidth: 96 }}>
-                      <span className="text-[22px] leading-none">{country.flag}</span>
+                      <img src={`https://flagcdn.com/w40/${country.abbr.toLowerCase()}.png`} alt={country.abbr} style={{ width:24, height:16, objectFit:"cover", borderRadius:3 }} />
                       <div className="text-left">
                         <div className="text-[12px] font-bold" style={{ color: 'white' }}>{country.code}</div>
                         <div className="text-[9px]" style={{ color: 'rgba(255,255,255,0.3)' }}>{country.abbr}</div>
@@ -320,7 +339,7 @@ export default function GuestSignup() {
                       className={`flex-1 ${inputCls}`} style={inputStyle} />
                   </div>
                   <p className="text-[11px] mt-2" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                    {country.flag} SMS code will be sent to {country.code} {phone || '...'}
+                    SMS code will be sent to {country.code} {phone || '...'}
                   </p>
                 </Field>
 
@@ -365,7 +384,7 @@ export default function GuestSignup() {
                   <div className="text-[48px] mb-3">📲</div>
                   <div className="text-[17px] font-bold" style={{ color: 'white' }}>Check your messages</div>
                   <div className="text-[13px] mt-1.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                    Code sent to <span style={{ color: GOLD, fontWeight: 700 }}>{country.flag} {country.code} {phone}</span>
+                    Code sent to <span style={{ color: GOLD, fontWeight: 700 }}>{country.code} {phone}</span>
                   </div>
                 </div>
                 <OtpRow otp={otp} onChange={setOtpDigit} idPrefix="gsig-otp" accentColor={GOLD} />

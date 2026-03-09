@@ -1,4 +1,4 @@
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useNavigate, useLocation } from 'react-router-dom';
 
 const GOLD = '#E8B86D';
 const TEAL = '#3ECFB2';
@@ -26,7 +26,7 @@ const ListIcon = (c: string) => <svg {...svgProps(c)}><path d="M3 9l9-7 9 7v11a2
 const BookIcon = (c: string) => <svg {...svgProps(c)}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>;
 const EarnIcon = (c: string) => <svg {...svgProps(c)}><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>;
 
-const mkItem = (icon: (c: string) => JSX.Element, label: string, path: string, active = GOLD): NavItem => ({
+const mkItem = (icon: (c: string) => React.ReactElement, label: string, path: string, active = GOLD): NavItem => ({
   icon: icon(MUTED), activeIcon: icon(active), label, path,
 });
 

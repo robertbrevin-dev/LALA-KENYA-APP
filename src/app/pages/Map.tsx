@@ -188,6 +188,8 @@ const LANDMARK_CATS = [
   { id: 'area',       label: '🏘️ Areas',         color: '#FD79A8' },
 ];
 
+
+
 function resolveCoords(location: string, index: number) {
   const loc = location?.toLowerCase() || '';
   for (const [key, val] of Object.entries(AREA_COORDS)) {
@@ -195,7 +197,12 @@ function resolveCoords(location: string, index: number) {
       return { lat: val.lat + (index % 3 - 1) * 0.004, lng: val.lng + (index % 2 - 0.5) * 0.006 };
     }
   }
-  return { lat: NAIROBI.lat + (Math.random() - 0.5) * 0.08, lng: NAIROBI.lng + (Math.random() - 0.5) * 0.08 };
+  const key = Object.keys(AREA_COORDS).find(k => location.toLowerCase().includes(k));
+  if (key) {
+    const base = AREA_COORDS[key];
+    return { lat: base.lat + (index % 5 - 2) * 0.002, lng: base.lng + (index % 3 - 1) * 0.002 };
+  }
+  return { lat: NAIROBI.lat + (index % 7 - 3) * 0.01, lng: NAIROBI.lng + (index % 5 - 2) * 0.01 };
 }
 
 function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
@@ -367,13 +374,7 @@ export default function MapPage() {
     }
   }, [mode]);
 
-  useEffect(() => {
-    const target = targetCoords || (searchPin ? { lat: searchPin.lat, lng: searchPin.lng } : null);
-    if (!target) { if (routeRef.current && mapInstance.current) { try { mapInstance.current.removeLayer(routeRef.current); routeRef.current = null; } catch {} } return; }
-    if (!loaded) return;
-    const from = userPos || (mapInstance.current ? { lat: mapInstance.current.getCenter().lat, lng: mapInstance.current.getCenter().lng } : null);
-    if (from) drawRoute(from, target);
-  }, [targetCoords, searchPin, loaded]);
+  // Route only drawn on explicit user action (startNav) - not auto
 
   const startNav = useCallback(() => {
     const effectiveTarget = targetCoords || (searchPin ? { lat: searchPin.lat, lng: searchPin.lng } : null);
