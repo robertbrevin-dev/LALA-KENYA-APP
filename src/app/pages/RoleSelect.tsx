@@ -1,10 +1,12 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'motion/react';
+import { useLanguage } from '../context/LanguageContext.tsx';
 
 const GOLD = '#E8B86D';
 const TEAL = '#3ECFB2';
 
 export default function RoleSelect() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { mode } = useParams();
   const isSignup = mode === 'signup';
@@ -19,7 +21,7 @@ export default function RoleSelect() {
           <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate('/')}
             className="mb-8 self-start border-none bg-transparent cursor-pointer flex items-center gap-1.5"
             style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13 }}>
-            &larr; Back
+            ← {t('auth.back')}
           </motion.button>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10">
             <div className="w-16 h-16 rounded-[20px] flex items-center justify-center mx-auto mb-5 relative"
@@ -27,10 +29,10 @@ export default function RoleSelect() {
               <span style={{ fontFamily: 'var(--font-playfair)', fontSize: 28, fontWeight: 900, color: '#1a0800' }}>L</span>
             </div>
             <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: 30, fontWeight: 900, color: 'white', marginBottom: 8 }}>
-              {isSignup ? 'Join LALA Kenya' : 'Welcome Back'}
+              {isSignup ? t('auth.join_lala_kenya') : t('auth.welcome_back')}
             </h1>
             <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.38)' }}>
-              {isSignup ? 'How will you use LALA?' : 'Which account are you signing in to?'}
+              {isSignup ? t('auth.how_use_lala') : t('auth.which_account_signing')}
             </p>
           </motion.div>
           <motion.button initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
@@ -46,10 +48,10 @@ export default function RoleSelect() {
                 </svg>
               </div>
               <div className="flex-1">
-                <div style={{ fontFamily: 'var(--font-playfair)', fontSize: 18, fontWeight: 800, color: 'white', marginBottom: 3 }}>I am a Guest</div>
-                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>{isSignup ? 'Find and book short stays' : 'Sign in to guest account'}</div>
+                <div style={{ fontFamily: 'var(--font-playfair)', fontSize: 18, fontWeight: 800, color: 'white', marginBottom: 3 }}>{t('auth.im_guest')}</div>
+                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>{isSignup ? t('auth.find_book_stays') : t('auth.sign_in_guest')}</div>
               </div>
-              <div style={{ color: GOLD, fontSize: 20 }}>&#x2192;</div>
+              <div style={{ color: GOLD, fontSize: 20 }}>→</div>
             </div>
           </motion.button>
           <motion.button initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}
@@ -65,26 +67,39 @@ export default function RoleSelect() {
                 </svg>
               </div>
               <div className="flex-1">
-                <div style={{ fontFamily: 'var(--font-playfair)', fontSize: 18, fontWeight: 800, color: 'white', marginBottom: 3 }}>List My Stay</div>
-                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>{isSignup ? 'Host and earn with your property' : 'Sign in to host dashboard'}</div>
+                <div style={{ fontFamily: 'var(--font-playfair)', fontSize: 18, fontWeight: 800, color: 'white', marginBottom: 3 }}>{t('auth.im_host')}</div>
+                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>{isSignup ? t('auth.list_space_earn') : t('auth.sign_in_host')}</div>
               </div>
-              <div style={{ color: TEAL, fontSize: 20 }}>&#x2192;</div>
+              <div style={{ color: TEAL, fontSize: 20 }}>→</div>
             </div>
           </motion.button>
+          
+          <motion.button initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+            whileTap={{ scale: 0.97 }}
+            className="w-full rounded-[22px] p-4 mb-6 text-center cursor-pointer border-none relative overflow-hidden"
+            style={{ background: 'transparent', border: '1.5px solid rgba(255,255,255,0.1)' }}>
+            <div className="flex items-center justify-center gap-3">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18.36 6.64a9 9 0 1 1-12.73 0L12 2l-5.64 4.64a9 9 0 0 1 0 12.73L12 22l6.36-9.36z"/>
+              </svg>
+              <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>{t('auth.continue_with_google')}</span>
+            </div>
+          </motion.button>
+
           <div className="text-center mt-auto">
             {isSignup ? (
               <div>
-                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)' }}>Already have an account? </span>
-                <button onClick={() => navigate('/role/login')} className="border-none bg-transparent cursor-pointer" style={{ color: GOLD, fontWeight: 700, fontSize: 13 }}>Log In</button>
+                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)' }}>{t('auth.already_have_account')} </span>
+                <button onClick={() => navigate('/role/login')} className="border-none bg-transparent cursor-pointer" style={{ color: GOLD, fontWeight: 700, fontSize: 13 }}>{t('auth.sign_in')}</button>
               </div>
             ) : (
               <div>
-                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)' }}>New to LALA? </span>
-                <button onClick={() => navigate('/role/signup')} className="border-none bg-transparent cursor-pointer" style={{ color: GOLD, fontWeight: 700, fontSize: 13 }}>Sign Up</button>
+                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)' }}>{t('auth.new_to_lala')} </span>
+                <button onClick={() => navigate('/role/signup')} className="border-none bg-transparent cursor-pointer" style={{ color: GOLD, fontWeight: 700, fontSize: 13 }}>{t('auth.sign_up')}</button>
               </div>
             )}
             <button onClick={() => navigate('/home')} className="border-none bg-transparent cursor-pointer block w-full mt-2" style={{ fontSize: 12, color: 'rgba(255,255,255,0.22)' }}>
-              Continue without account
+              {t('auth.continue_as_guest')}
             </button>
           </div>
         </div>

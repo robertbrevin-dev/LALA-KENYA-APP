@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
 import { useApp } from '../context/AppContext';
+import { useLanguage } from '../context/LanguageContext.tsx';
 
 const TEAL = '#3ECFB2';
 const GOLD = '#E8B86D';
@@ -30,6 +31,8 @@ const menuItems = [
 ];
 
 export default function HostProfile() {
+
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { currentUser, logout } = useApp();
   const initials = currentUser?.name?.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase() || 'H';

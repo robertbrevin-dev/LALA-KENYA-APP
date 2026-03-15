@@ -6,6 +6,7 @@ import BottomNav from '../components/BottomNav';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../../lib/supabase';
 import BackRefreshBar from '../components/BackRefreshBar';
+import { useLanguage } from '../context/LanguageContext.tsx';
 
 // ─── Geocode a place name → { lat, lng } using OpenStreetMap Nominatim ───
 async function geocodeArea(areaName: string): Promise<{ lat: number; lng: number }> {
@@ -23,6 +24,8 @@ async function geocodeArea(areaName: string): Promise<{ lat: number; lng: number
 }
 
 export default function HostListings() {
+
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { currentUser, loading: appLoading } = useApp();
   const user = currentUser;
@@ -54,12 +57,15 @@ export default function HostListings() {
   const [editPartyAllowed, setEditPartyAllowed] = useState(false);
   const [editLocationVisible, setEditLocationVisible] = useState(true);
   const [editSaving, setEditSaving] = useState(false);
+  const [editImages, setEditImages] = useState<string[]>([]);
+  const [editUploading, setEditUploading] = useState(false);
   const [editError, setEditError] = useState('');
   const [savingStep, setSavingStep] = useState(''); // NEW: show progress step
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
 
   // Protect route
+  useEffect(() => { if (currentUser && currentUser.role !== 'host') navigate('/home', { replace: true }); }, [currentUser]);
   useEffect(() => {
     if (!appLoading && !user) navigate('/login');
   }, [appLoading, user, navigate]);
@@ -119,6 +125,8 @@ export default function HostListings() {
       }).eq('id',editListing.id).select('*').single();
       if (upErr) throw new Error(upErr.message);
       setListings(prev=>prev.map(l=>l.id===editListing.id?{...l,...updated}:l));
+    // Also update images in state
+    setEditImages(updated.image_urls || []);
       setEditListing(null);
     } catch(e:any) { setEditError(e.message||'Failed to save'); }
     finally { setEditSaving(false); }
@@ -268,7 +276,7 @@ export default function HostListings() {
             <div className="rounded-[20px] p-10 text-center mb-4"
               style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(62,207,178,0.15)' }}>
               <div className="text-[48px] mb-3">🏠</div>
-              <div className="text-[15px] mb-1" style={{ color: 'white', fontWeight: 600 }}>No listings yet</div>
+              <div className="text-[15px] mb-1" style={{ color: 'white', fontWeight: 600 }}>{t('host.no_listings')}</div>
               <div className="text-[13px]" style={{ color: 'rgba(255,255,255,0.4)' }}>Add your first property below</div>
             </div>
           ) : (
@@ -605,6 +613,23 @@ export default function HostListings() {
             </div>
             <div><div style={{fontSize:10,fontWeight:700,color:'rgba(62,207,178,0.6)',letterSpacing:1,marginBottom:6}}>DESCRIPTION</div>
             <textarea value={editDescription} onChange={e=>setEditDescription(e.target.value)} rows={3} style={{width:'100%',padding:'11px 14px',borderRadius:12,outline:'none',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(62,207,178,0.2)',color:'white',fontSize:14,boxSizing:'border-box',resize:'none',fontFamily:'inherit'}}/></div>
+            <div>
+              <div style={{fontSize:10,fontWeight:700,color:'rgba(62,207,178,0.6)',letterSpacing:1,marginBottom:8}}>PHOTOS</div>
+              <div style={{display:'flex',flexWrap:'wrap',gap:8,marginBottom:8}}>
+                {editImages.map((url,i)=>(
+                  <div key={i} style={{position:'relative',width:80,height:80,borderRadius:10,overflow:'hidden',border:'1px solid rgba(62,207,178,0.2)'}}>
+                    <img src={url} style={{width:'100%',height:'100%',objectFit:'cover'}} />
+                    {i===0&&<div style={{position:'absolute',top:2,left:2,background:'#3ECFB2',borderRadius:4,fontSize:9,fontWeight:700,color:'#061412',padding:'1px 4px'}}>MAIN</div>}
+                    <button onClick={()=>handleRemoveEditPhoto(url)} style={{position:'absolute',top:2,right:2,width:18,height:18,borderRadius:'50%',background:'rgba(255,0,0,0.7)',border:'none',color:'white',fontSize:11,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
+                  </div>
+                ))}
+                <label style={{width:80,height:80,borderRadius:10,border:'2px dashed rgba(62,207,178,0.3)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',cursor:'pointer',background:'rgba(62,207,178,0.05)'}}>
+                  <input type="file" accept="image/*" style={{display:'none'}} onChange={e=>e.target.files?.[0]&&handleUploadEditPhoto(e.target.files[0])} />
+                  {editUploading ? <div style={{fontSize:10,color:'#3ECFB2'}}>...</div> : <><div style={{fontSize:22,color:'#3ECFB2'}}>+</div><div style={{fontSize:9,color:'rgba(62,207,178,0.6)'}}>ADD</div></>}
+                </label>
+              </div>
+              <div style={{fontSize:11,color:'rgba(255,255,255,0.3)'}}>First photo is the main cover image. Tap × to remove.</div>
+            </div>
             <button disabled={editSaving} onClick={handleSaveEdit} style={{width:'100%',padding:'14px',borderRadius:16,border:'none',cursor:editSaving?'not-allowed':'pointer',background:editSaving?'rgba(255,255,255,0.08)':'linear-gradient(135deg,#3ECFB2,#2AA893)',color:editSaving?'rgba(255,255,255,0.3)':'#061412',fontWeight:800,fontSize:15}}>
               {editSaving?'Saving...':'Save Changes'}
             </button>

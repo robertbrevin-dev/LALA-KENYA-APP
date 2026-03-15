@@ -13,7 +13,7 @@ import Home from './pages/Home';
 import PropertyDetail from './pages/PropertyDetail';
 import HostDashboard from './pages/HostDashboard';
 import Payment from './pages/Payment';
-import Map from './pages/Map';
+import MapPage from './pages/Map';
 import Saved from './pages/Saved';
 import Trips from './pages/Trips';
 import Profile from './pages/Profile';
@@ -51,7 +51,7 @@ const routes = [
       { path: 'home', Component: Home },
       { path: 'property/:id', Component: PropertyDetail },
       { path: 'payment/:propertyId', Component: Payment },
-      { path: 'map', Component: Map },
+      { path: 'map', Component: MapPage },
       { path: 'saved', Component: Saved },
       { path: 'trips', Component: Trips },
       { path: 'profile', Component: Profile },
@@ -64,7 +64,7 @@ const routes = [
       { path: 'profile/help', Component: HelpCenter },
       { path: 'profile/terms', Component: TermsAndPolicies },
       { path: 'host', Component: HostDashboard },
-      { path: 'host/map', Component: Map },
+      { path: 'host/map', Component: MapPage },
       { path: 'host/listings', Component: HostListings },
       { path: 'host/bookings', Component: HostBookings },
       { path: 'host/earnings', Component: HostEarnings },

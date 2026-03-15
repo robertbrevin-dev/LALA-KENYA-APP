@@ -6,13 +6,13 @@ import { supabase } from '../../lib/supabase';
 import { openCenteredPopup } from '../lib/oauthPopup';
 import { GoogleIcon } from './AuthShared.tsx';
 import { useApp } from '../context/AppContext';
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage } from '../context/LanguageContext.tsx';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 
 export default function Signup() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { currentUser } = useApp();
-  const { t } = useLanguage();
   const [gLoading, setGLoading] = useState(false);
   const [gError, setGError] = useState('');
 

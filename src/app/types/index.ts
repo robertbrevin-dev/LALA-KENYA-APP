@@ -117,4 +117,6 @@ export interface CallStatus {
   conversationId?: string;
   participantName?: string;
   duration?: number;
+  callId?: string;
+  callType?: string;
 }

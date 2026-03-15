@@ -7,6 +7,7 @@ import { useApp } from '../context/AppContext';
 import { COUNTRY_CODES, CountryCode, GoogleIcon, CountryPicker, OtpRow } from './AuthShared';
 import { openCenteredPopup } from '../lib/oauthPopup';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { useLanguage } from '../context/LanguageContext.tsx';
 
 type Tab = 'email' | 'phone';
 const TEAL = '#3ECFB2';
@@ -25,6 +26,7 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
 );
 
 export default function HostLogin() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { currentUser, refreshUser } = useApp();
   const [tab, setTab] = useState<Tab>('email');
@@ -35,7 +37,6 @@ export default function HostLogin() {
 
   const [country, setCountry] = useState<CountryCode>(COUNTRY_CODES[0]);
   const [phone, setPhone] = useState('');
-  const [showPicker, setShowPicker] = useState(false);
   const [phoneStep, setPhoneStep] = useState<'input' | 'otp'>('input');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [resend, setResend] = useState(0);
@@ -277,16 +278,7 @@ export default function HostLogin() {
                 className="flex flex-col gap-4">
                 <Field label="PHONE NUMBER">
                   <div className="flex gap-2">
-                    <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowPicker(true)}
-                      className="flex items-center gap-2 px-3 py-3.5 rounded-[14px] border-none cursor-pointer flex-shrink-0"
-                      style={{ background: CARD, border: BORDER, minWidth: 96 }}>
-                      <span className="text-[22px] leading-none">{country.flag}</span>
-                      <div className="text-left">
-                        <div className="text-[12px] font-bold" style={{ color: 'white' }}>{country.code}</div>
-                        <div className="text-[9px]" style={{ color: 'rgba(255,255,255,0.3)' }}>{country.abbr}</div>
-                      </div>
-                      <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>▾</span>
-                    </motion.button>
+                    <CountryPicker value={country.code} onChange={(code) => { const found = COUNTRY_CODES.find(c => c.code === code); if (found) setCountry(found); }} />
                     <input type="tel" value={phone}
                       onChange={e => setPhone(e.target.value.replace(/[^\d\s\-()]/g, ''))}
                       placeholder="712 345 678" autoComplete="tel-national"
@@ -389,13 +381,6 @@ export default function HostLogin() {
           </div>
         </div>
 
-        <CountryPicker
-          visible={showPicker}
-          selected={country}
-          onSelect={setCountry}
-          onClose={() => setShowPicker(false)}
-          accentColor={TEAL}
-        />
       </motion.div>
     </div>
   );

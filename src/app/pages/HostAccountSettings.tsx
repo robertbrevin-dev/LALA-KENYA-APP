@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { supabase } from '../../lib/supabase';
 import { useApp } from '../context/AppContext';
+import { useLanguage } from '../context/LanguageContext.tsx';
 const TEAL = '#3ECFB2';
 export default function HostAccountSettings() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { currentUser } = useApp();
   const [name, setName] = useState(currentUser?.name || '');

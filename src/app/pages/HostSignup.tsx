@@ -45,7 +45,6 @@ export default function HostSignup() {
   // Phone
   const [country, setCountry] = useState<CountryCode>(COUNTRY_CODES[0]);
   const [phone, setPhone] = useState('');
-  const [showPicker, setShowPicker] = useState(false);
   const [phoneStep, setPhoneStep] = useState<'input' | 'otp'>('input');
   const [otp, setOtp] = useState(['','','','','','']);
   const [resend, setResend] = useState(0);
@@ -370,16 +369,7 @@ export default function HostSignup() {
                 {tab === 'phone' && (
                   <Field label="PHONE NUMBER">
                     <div className="flex gap-2">
-                      <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowPicker(true)}
-                        className="flex items-center gap-2 px-3 py-3.5 rounded-[14px] border-none cursor-pointer flex-shrink-0"
-                        style={{ background: CARD, border: BORDER, minWidth: 96 }}>
-                        <img src={`https://flagcdn.com/w40/${country.abbr.toLowerCase()}.png`} alt={country.abbr} style={{ width:24, height:16, objectFit:"cover", borderRadius:3 }} />
-                        <div className="text-left">
-                          <div className="text-[12px] font-bold" style={{ color: 'white' }}>{country.code}</div>
-                          <div className="text-[9px]" style={{ color: 'rgba(255,255,255,0.3)' }}>{country.abbr}</div>
-                        </div>
-                        <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>▾</span>
-                      </motion.button>
+                    <CountryPicker value={country.code} onChange={(code) => { const found = COUNTRY_CODES.find(c => c.code === code); if (found) setCountry(found); }} />
                       <input type="tel" value={phone}
                         onChange={e => setPhone(e.target.value.replace(/[^\d\s\-()]/g, ''))}
                         placeholder="712 345 678" autoComplete="tel-national"
@@ -495,7 +485,6 @@ export default function HostSignup() {
           </div>
         </div>
 
-        <CountryPicker visible={showPicker} selected={country} onSelect={setCountry} onClose={() => setShowPicker(false)} accentColor={TEAL} />
       </motion.div>
     </div>
   );

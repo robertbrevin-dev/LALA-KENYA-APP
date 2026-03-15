@@ -4,19 +4,21 @@ import { useNavigate } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
 import BackRefreshBar from '../components/BackRefreshBar';
 import { useApp } from '../context/AppContext';
-
-const menuItems = [
-  { icon: '👤', label: 'Personal Information', path: '/profile/personal', color: '#E8B86D' },
-  { icon: '🔐', label: 'Login & Security', path: '/profile/security', color: '#3ECFB2' },
-  { icon: '💳', label: 'Payment Methods', path: '/profile/payments', color: '#E8B86D' },
-  { icon: '🔔', label: 'Notifications', path: '/profile/notifications', color: '#3ECFB2' },
-  { icon: '❓', label: 'Help Center', path: '/profile/help', color: '#E8B86D' },
-  { icon: '📄', label: 'Terms & Policies', path: '/profile/terms', color: 'rgba(255,255,255,0.4)' },
-];
+import { useLanguage } from '../context/LanguageContext.tsx';
 
 export default function Profile() {
+  const { t } = useLanguage();
   const { currentUser, logout } = useApp();
   const navigate = useNavigate();
+
+  const menuItems = [
+    { icon: '👤', label: t('profile.personal_info'), path: '/profile/personal', color: '#E8B86D' },
+    { icon: '🔐', label: t('profile.login_security'), path: '/profile/security', color: '#3ECFB2' },
+    { icon: '💳', label: t('profile.payment_methods'), path: '/profile/payments', color: '#E8B86D' },
+    { icon: '🔔', label: t('profile.notifications'), path: '/profile/notifications', color: '#3ECFB2' },
+    { icon: '❓', label: t('profile.help_center'), path: '/profile/help', color: '#E8B86D' },
+    { icon: '📄', label: t('profile.terms_policies'), path: '/profile/terms', color: 'rgba(255,255,255,0.4)' },
+  ];
 
   const initials = currentUser?.name
     ? currentUser.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)

@@ -4,8 +4,10 @@ import BottomNav from '../components/BottomNav';
 import PropertyCard from '../components/PropertyCard';
 import { useApp } from '../context/AppContext';
 import BackRefreshBar from '../components/BackRefreshBar';
+import { useLanguage } from '../context/LanguageContext.tsx';
 
 export default function Saved() {
+  const { t } = useLanguage();
   const { properties } = useApp();
   const favoriteProperties = properties.filter(p => p.isFavorite);
 

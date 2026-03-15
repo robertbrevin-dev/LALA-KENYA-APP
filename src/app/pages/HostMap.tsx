@@ -6,6 +6,7 @@ import 'leaflet/dist/leaflet.css';
 import BottomNav from '../components/BottomNav';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../../lib/supabase';
+import { useLanguage } from '../context/LanguageContext.tsx';
 
 const GOLD = '#E8B86D';
 const TEAL = '#3ECFB2';
@@ -24,6 +25,7 @@ function fmtDist(km: number) {
 }
 
 export default function HostMap() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { currentUser, properties } = useApp();
   const mapRef = useRef<HTMLDivElement>(null);

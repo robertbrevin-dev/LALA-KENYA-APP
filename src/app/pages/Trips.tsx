@@ -7,18 +7,24 @@ import BottomNav from '../components/BottomNav';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../../lib/supabase';
 import BackRefreshBar from '../components/BackRefreshBar';
+import { useLanguage } from '../context/LanguageContext.tsx';
 
 export default function Trips() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { createConversation, properties, currentUser } = useApp();
   const [bookings, setBookings] = useState<any[]>([]);
   const [history, setHistory] = useState<any[]>([]);
+  const [pastInquiries, setPastInquiries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('upcoming');
   const todayStr = new Date().toISOString().slice(0, 10);
 
   useEffect(() => {
     async function fetchBookings() {
+      if (currentUser?.id) {
+        await supabase.from('bookings').update({ booking_status: 'expired' }).eq('guest_id', currentUser.id).eq('booking_status', 'inquiry').lt('created_at', new Date(Date.now() - 5*60*1000).toISOString());
+      }
       if (!currentUser?.id) {
         setBookings([]);
         setHistory([]);
@@ -47,10 +53,25 @@ export default function Trips() {
           nights: b.nights,
           totalAmount: b.total_amount,
           status: b.booking_status,
+          createdAt: b.created_at,
         }));
-        const upcoming = allMapped.filter(
-          (b: any) => b.status !== 'cancelled' && (b.checkIn as string) >= today
-        );
+        const statusOrder: Record<string, number> = {
+          'inquiry': 0, 'accepted': 1, 'payment_pending': 2,
+          'paid': 3, 'checked_in': 4, 'completed': 5,
+        };
+        const upcoming = allMapped
+          .filter((b: any) =>
+            !['cancelled', 'declined', 'expired', 'no_show'].includes(b.status)
+          )
+          .sort((a: any, b: any) => {
+            const oa = statusOrder[a.status] ?? 99;
+            const ob = statusOrder[b.status] ?? 99;
+            if (oa !== ob) return oa - ob;
+            return ((b.createdAt || '') as string).localeCompare((a.createdAt || '') as string);
+          });
+        const pastInquiries = allMapped
+          .filter((b: any) => ['cancelled', 'declined', 'expired'].includes(b.status))
+          .sort((a: any, b: any) => ((b.createdAt || '') as string).localeCompare((a.createdAt || '') as string));
         const past = allMapped
           .filter(
             (b: any) =>
@@ -58,22 +79,23 @@ export default function Trips() {
               ((b.checkOut as string) < today &&
                 (b.status === 'in_stay' || b.status === 'confirmed' || b.status === 'completed'))
           )
-          .sort((a: any, b: any) => (b.checkOut as string).localeCompare(a.checkOut as string));
+          .sort((a: any, b: any) => ((b.checkOut || '') as string).localeCompare((a.checkOut || '') as string));
         setBookings(upcoming);
         setHistory(past);
+        setPastInquiries(pastInquiries);
       }
       setLoading(false);
     }
     fetchBookings();
   }, [currentUser?.id]);
 
-  const handleContactHost = (booking: any) => {
+  const handleContactHost = async (booking: any) => {
     const property = properties.find((p: any) => p.id === booking.propertyId);
     if (property) {
-      const conversationId = createConversation(
+      const conversationId = await createConversation(
         booking,
         'host',
-        property.hostName,
+        property.title,
         property.hostId
       );
       navigate(`/conversation/${conversationId}`);
@@ -201,7 +223,7 @@ export default function Trips() {
                   className="text-[12px]"
                   style={{ color: 'rgba(255,255,255,0.35)' }}
                 >
-                  Total paid
+                  {['paid','checked_in','completed'].includes(booking.status) ? 'Total paid' : 'Total amount'}
                 </div>
                 <div 
                   className="text-[16px]"
@@ -216,14 +238,25 @@ export default function Trips() {
 
               {/* Contact Host */}
               <div className="mt-3 flex flex-wrap gap-2 items-center">
-                <button
-                  className="flex items-center gap-2 text-[14px] font-bold"
-                  style={{ color: '#E8B86D' }}
-                  onClick={() => handleContactHost(booking)}
-                >
-                  <MessageCircle size={16} />
-                  Contact Host
-                </button>
+                {booking.status === 'inquiry' ? (
+                  <div className="flex items-center gap-2 text-[13px]" style={{ color: '#E8B86D' }}>
+                    <span className="animate-pulse">⏳</span>
+                    Waiting for host to respond...
+                  </div>
+                ) : booking.status === 'declined' || booking.status === 'expired' ? (
+                  <div className="text-[13px]" style={{ color: '#FF6B6B' }}>
+                    ✕ Inquiry {booking.status}
+                  </div>
+                ) : (
+                  <button
+                    className="flex items-center gap-2 text-[14px] font-bold"
+                    style={{ color: '#E8B86D' }}
+                    onClick={() => handleContactHost(booking)}
+                  >
+                    <MessageCircle size={16} />
+                    Contact Host
+                  </button>
+                )}
                 {canCheckIn(booking) && (
                   <button
                     onClick={() => updateStatus(booking.id, 'in_stay')}
@@ -255,6 +288,30 @@ export default function Trips() {
             </motion.div>
           ))}
 
+          {pastInquiries.length > 0 && (
+            <div className="mt-6">
+              <div className="text-[18px] mb-3" style={{ fontFamily: 'var(--font-playfair)', fontWeight: 800, color: 'var(--lala-white)' }}>
+                Past Inquiries
+              </div>
+              {pastInquiries.map((b, idx) => (
+                <motion.div key={`pi-${b.id}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.08 }}
+                  className="rounded-[16px] p-4 mb-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,107,107,0.15)' }}>
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <div className="text-[15px]" style={{ fontWeight: 700, color: 'var(--lala-white)' }}>{b.propertyTitle}</div>
+                      <div className="text-[12px] mt-0.5" style={{ color: 'var(--lala-muted)' }}>{b.checkIn} — {b.checkOut}</div>
+                    </div>
+                    <div className="text-[11px] px-2 py-1 rounded-full uppercase" style={{ background: 'rgba(255,107,107,0.12)', color: '#FF6B6B', fontWeight: 600 }}>
+                      {b.status}
+                    </div>
+                  </div>
+                  <div className="text-[13px]" style={{ color: '#FF6B6B' }}>
+                    {b.status === 'expired' ? '⏰ Host did not respond in time' : b.status === 'declined' ? '✕ Host declined this inquiry' : '✕ Cancelled'}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
           {history.length > 0 && (
             <div className="mt-6">
               <div

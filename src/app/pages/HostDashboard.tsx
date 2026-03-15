@@ -6,8 +6,10 @@ import BottomNav from '../components/BottomNav';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../../lib/supabase';
 import BackRefreshBar from '../components/BackRefreshBar';
+import { useLanguage } from '../context/LanguageContext.tsx';
 
 export default function HostDashboard() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { currentUser, loading: appLoading } = useApp();
 

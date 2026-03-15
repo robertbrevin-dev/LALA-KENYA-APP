@@ -6,6 +6,7 @@ import 'leaflet/dist/leaflet.css';
 import PhoneFrame from '../components/PhoneFrame';
 import BottomNav from '../components/BottomNav';
 import { useApp } from '../context/AppContext';
+import { useLanguage } from '../context/LanguageContext.tsx';
 import { supabase } from '../../lib/supabase';
 
 const NAIROBI = { lat: -1.286389, lng: 36.817223 };
@@ -224,10 +225,11 @@ function fmtEta(km: number, speed: number) {
 
 export default function MapPage() {
   const navigate = useNavigate();
-  const { properties, currentUser, loading } = useApp();
-
-  const mapRef = useRef<HTMLDivElement>(null);
+  const { properties, currentUser } = useApp();
+  const { t } = useLanguage();
+  const [map, setMap] = useState<any>(null);
   const mapInstance = useRef<any>(null);
+  const mapRef = useRef<HTMLDivElement>(null);
   const propMarkersRef = useRef<any[]>([]);
   const landmarkMarkersRef = useRef<any[]>([]);
   const routeRef = useRef<any>(null);
@@ -235,7 +237,7 @@ export default function MapPage() {
   const userMarkerRef = useRef<any>(null);
   const watchIdRef = useRef<number | null>(null);
   const guestShareRef = useRef<number | null>(null);
-  const guestMarkersRef = useRef<Map<string, any>>(new Map());
+  const guestMarkersRef = useRef<Record<string, any>>({});
 
   const [loaded, setLoaded] = useState(false);
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
@@ -486,8 +488,8 @@ export default function MapPage() {
 
   useEffect(() => {
     if (!L || !mapInstance.current || !loaded || currentUser?.role !== 'host') return;
-    guestMarkersRef.current.forEach(m => { try { mapInstance.current.removeLayer(m); } catch {} });
-    guestMarkersRef.current.clear();
+    Object.values(guestMarkersRef.current).forEach(m => { try { mapInstance.current.removeLayer(m); } catch {} });
+    guestMarkersRef.current = {};
     liveGuests.forEach((g: any) => {
       if (!g.is_sharing || !g.lat || !g.lng) return;
       const name = g.bookings?.guest_name || 'Guest';
@@ -503,7 +505,7 @@ export default function MapPage() {
       ].join('');
       const icon = L.divIcon({ className: '', html, iconAnchor: [18, 18] });
       const marker = L.marker([g.lat, g.lng], { icon, zIndexOffset: 900 }).addTo(mapInstance.current);
-      guestMarkersRef.current.set(g.user_id, marker);
+      guestMarkersRef.current[g.user_id] = marker;
     });
   }, [liveGuests, loaded, currentUser?.role]);
 
@@ -518,9 +520,8 @@ export default function MapPage() {
         .in('booking_status', ['confirmed', 'in_stay'])
         .lte('check_in', today)
         .gte('check_out', today)
-        .limit(1)
-        .single();
-      if (data) setActiveBookingId(data.id);
+        .limit(1);
+      if (data && data.length > 0) setActiveBookingId(data[0].id);
     };
     checkActiveBooking();
   }, [currentUser?.id, currentUser?.role]);
@@ -956,7 +957,7 @@ export default function MapPage() {
 
         <AnimatePresence>
           {!loaded && (
-            <motion.div initial={{ opacity: 1 }} exit={{ opacity: 0 }}
+            <motion.div key="loading" initial={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="absolute inset-0 flex flex-col items-center justify-center z-[999]" style={{ background: isDark ? '#0D0F14' : '#f5f5f0' }}>
               <div className="text-[60px] mb-4">🗺️</div>
               <div className="text-[18px] font-black mb-1" style={{ fontFamily: 'var(--font-playfair)', color: '#0D0F14' }}>LALA Map</div>
@@ -966,7 +967,7 @@ export default function MapPage() {
         </AnimatePresence>
         <AnimatePresence>
           {nearbyAlert && (
-            <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+            <motion.div key="nearby" initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
               className="absolute left-4 right-4 z-[1005] rounded-[16px] p-4"
               style={{ top: 200, background: 'rgba(13,15,20,0.96)', border: '1.5px solid #E8B86D', boxShadow: '0 8px 32px rgba(232,184,109,0.4)' }}>
               <div className="flex items-center gap-3">
@@ -981,7 +982,7 @@ export default function MapPage() {
         </AnimatePresence>
         <AnimatePresence>
           {navigating && (selected || selectedLandmark) && (
-            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            <motion.div key="navigating" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               className="absolute left-4 right-4 z-[1003] rounded-[20px] p-4"
               style={{ top: 200, background: 'rgba(13,15,20,0.97)', border: `1.5px solid ${TRAVEL[mode].color}50`, boxShadow: '0 12px 40px rgba(0,0,0,0.5)' }}>
               {gpsError ? (
@@ -1081,7 +1082,7 @@ export default function MapPage() {
         </AnimatePresence>
         <AnimatePresence>
           {selectedLandmark && !navigating && (
-            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 30 }}
+            <motion.div key="property-panel" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 30 }}
               className="absolute left-3 right-3 z-[1002]" style={{ bottom: 76 }}>
               <div className="rounded-[22px] overflow-hidden"
                 style={{ background: isDark ? 'rgba(13,15,20,0.97)' : 'rgba(255,255,255,0.97)', border: `1.5px solid ${selectedLandmark.color}40`, backdropFilter: 'blur(30px)', boxShadow: '0 24px 60px rgba(0,0,0,0.7)' }}>
@@ -1138,7 +1139,7 @@ export default function MapPage() {
         </AnimatePresence>
         <AnimatePresence>
           {selected && panel === 'guest' && !navigating && (
-            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 30 }}
+            <motion.div key="landmark-panel" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 30 }}
               className="absolute left-3 right-3 z-[1002]" style={{ bottom: 76 }}>
               <div className="rounded-[22px] overflow-hidden"
                 style={{ background: isDark ? 'rgba(13,15,20,0.97)' : 'rgba(255,255,255,0.97)', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.1)', backdropFilter: 'blur(30px)', boxShadow: '0 24px 60px rgba(0,0,0,0.4)' }}>
@@ -1268,7 +1269,7 @@ export default function MapPage() {
 
         <AnimatePresence>
           {showTips && selected && (
-            <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 40 }}
+            <motion.div key="search-panel" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 40 }}
               className="absolute right-4 z-[1003] rounded-[16px] p-3 w-[200px]"
               style={{ bottom: bottomOffset + 120, background: 'rgba(13,15,20,0.96)', border: '1px solid rgba(232,184,109,0.2)', backdropFilter: 'blur(20px)' }}>
               <div className="text-[11px] font-bold mb-2" style={{ color: '#E8B86D', letterSpacing: 1 }}>💡 ARRIVAL TIPS</div>

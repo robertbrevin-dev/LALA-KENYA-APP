@@ -5,6 +5,7 @@ import PropertyCard from '../components/PropertyCard';
 import PhoneFrame from '../components/PhoneFrame';
 import BottomNav from '../components/BottomNav';
 import { useApp } from '../context/AppContext';
+import { useLanguage } from '../context/LanguageContext.tsx';
 import { FilterCategory, Property } from '../types';
 import { supabase } from '../../lib/supabase';
 import BackRefreshBar from '../components/BackRefreshBar';
@@ -20,6 +21,7 @@ const getGreeting = () => {
 
 export default function Home() {
   const { properties, currentUser } = useApp();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [agentStatus, setAgentStatus] = useState<'idle'|'listening'|'thinking'|'speaking'>('idle');
@@ -92,7 +94,7 @@ YOUR ROLE:
           if (!SR) return;
           const rec = new SR();
           rec.lang = 'en-KE'; rec.interimResults = false; rec.maxAlternatives = 1;
-          rec.onstart = () => { setAgentStatus('listening'); setAgentText('Listening...'); };
+          rec.onstart = () => { setAgentStatus('listening'); setAgentText(t('agent.listening')); };
           rec.onresult = (e: any) => { const t = e.results[0][0].transcript; setAgentText(t); askAgent(t); };
           rec.onerror = () => { setAgentStatus('idle'); setAgentText(''); };
           agentRecRef.current = rec;
@@ -108,7 +110,7 @@ YOUR ROLE:
 
   const askAgent = async (transcript: string) => {
     setAgentStatus('thinking');
-    setAgentText('Thinking...');
+    setAgentText(t('agent.thinking'));
     const newHistory = [...agentHistory, { role: 'user', content: transcript }];
     setAgentHistory(newHistory);
     try {
@@ -136,7 +138,7 @@ YOUR ROLE:
     if (!SR) { speakText('Sorry, please use Chrome for voice.', false); return; }
     const rec = new SR();
     rec.lang = 'en-KE'; rec.interimResults = false; rec.maxAlternatives = 1;
-    rec.onstart = () => { setAgentStatus('listening'); setAgentText('Listening...'); };
+    rec.onstart = () => { setAgentStatus('listening'); setAgentText(t('agent.listening')); };
     rec.onresult = (e: any) => { const t = e.results[0][0].transcript; setAgentText(t); askAgent(t); };
     rec.onerror = () => { setAgentStatus('idle'); setAgentText(''); };
     agentRecRef.current = rec;

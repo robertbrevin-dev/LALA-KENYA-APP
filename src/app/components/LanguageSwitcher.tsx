@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useLanguage, LANGUAGES, LanguageConfig } from '../context/LanguageContext';
+import { useLanguage, LANGUAGES, LanguageConfig } from '../context/LanguageContext.tsx';
 
 interface LanguageSwitcherProps {
   className?: string;

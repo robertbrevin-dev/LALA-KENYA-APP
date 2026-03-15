@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
+import { useLanguage } from '../context/LanguageContext.tsx';
 
 const TEAL = '#3ECFB2';
 
@@ -21,6 +22,7 @@ const SocialIcon = ({ href, bg, children }: { href: string; bg: string; children
 );
 
 export default function HostResources() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [open, setOpen] = useState<number | null>(null);
 

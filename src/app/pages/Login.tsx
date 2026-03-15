@@ -4,17 +4,14 @@ import { motion, AnimatePresence } from 'motion/react';
 import { supabase, isAuthEnabled } from '../../lib/supabase';
 import BackRefreshBar from '../components/BackRefreshBar';
 import { useApp } from '../context/AppContext';
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage } from '../context/LanguageContext.tsx';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { COUNTRY_CODES, CountryCode, GoogleIcon, CountryPicker, OtpRow } from './AuthShared';
 import { openCenteredPopup } from '../lib/oauthPopup';
-
 type Tab = 'email' | 'phone';
-
 const GOLD = '#E8B86D';
 const CARD = 'rgba(255,255,255,0.05)';
 const BORDER = '1px solid rgba(255,255,255,0.09)';
-
 const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <div>
     <label className="text-[10px] font-black block mb-1.5"
@@ -22,35 +19,28 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
     {children}
   </div>
 );
-
 const inputCls = "w-full px-4 py-3.5 rounded-[14px] text-[14px] outline-none";
 const inputStyle = { background: CARD, border: BORDER, color: 'white' };
-
 export default function Login() {
   const navigate = useNavigate();
   const { currentUser } = useApp();
   const { t } = useLanguage();
   const [tab, setTab] = useState<Tab>('email');
-
   // Email
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
-
   // Phone
   const [country, setCountry] = useState<CountryCode>(COUNTRY_CODES[0]);
   const [phone, setPhone] = useState('');
-  const [showPicker, setShowPicker] = useState(false);
   const [phoneStep, setPhoneStep] = useState<'input' | 'otp'>('input');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [resend, setResend] = useState(0);
-
   // Shared
   const [loading, setLoading] = useState(false);
   const [gLoading, setGLoading] = useState(false);
   const [error, setError] = useState('');
-
   useEffect(() => { 
     if (currentUser) {
       if (currentUser.role === 'host') {
@@ -60,18 +50,15 @@ export default function Login() {
       }
     }
   }, [currentUser]);
-
   useEffect(() => {
     if (resend <= 0) return;
     const timer = setTimeout(() => setResend(v => v - 1), 1000);
     return () => clearTimeout(timer);
   }, [resend]);
-
   // Auto-submit OTP when all 6 digits filled
   useEffect(() => {
     if (otp.join('').length === 6 && phoneStep === 'otp') handleVerifyOTP();
   }, [otp]);
-
   // Google callback
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
@@ -91,9 +78,7 @@ export default function Login() {
     });
     return () => subscription.unsubscribe();
   }, []);
-
   const reset = () => { setError(''); setLoading(false); };
-
   const handleEmailLogin = async () => {
     if (!email.trim()) { setError('Please enter your email address'); return; }
     if (!password) { setError('Please enter your password'); return; }
@@ -102,9 +87,7 @@ export default function Login() {
     if (error) { setError(error.message); setLoading(false); return; }
     // Navigation will be handled by AppContext useEffect
   };
-
   const fullPhone = `${country.code}${phone.replace(/^0+/, '').replace(/\D/g, '')}`;
-
   const handleSendOTP = async () => {
     if (phone.replace(/\D/g, '').length < 6) { setError('Enter a valid phone number'); return; }
     setLoading(true); setError('');
@@ -112,7 +95,6 @@ export default function Login() {
     if (error) { setError(error.message); setLoading(false); return; }
     setLoading(false); setPhoneStep('otp'); setResend(60); setOtp(['','','','','','']);
   };
-
   const handleVerifyOTP = async () => {
     const code = otp.join('');
     if (code.length < 6) { setError('Enter all 6 digits'); return; }
@@ -121,7 +103,6 @@ export default function Login() {
     if (error) { setError(error.message); setLoading(false); return; }
     // Navigation will be handled by AppContext useEffect
   };
-
   const handleGoogle = async () => {
     setGLoading(true); setError('');
     const { data, error } = await supabase.auth.signInWithOAuth({
@@ -139,11 +120,9 @@ export default function Login() {
       setGLoading(false);
     }
   };
-
   const setOtpDigit = (i: number, val: string) => {
     const next = [...otp]; next[i] = val; setOtp(next);
   };
-
   return (
     <div className="flex items-center justify-center min-h-screen p-4" style={{ background: '#06060c' }}>
       <motion.div
@@ -151,13 +130,10 @@ export default function Login() {
         className="w-full max-w-[390px] h-[844px] rounded-[44px] overflow-hidden relative flex flex-col"
         style={{ background: '#0D0F14', border: '1px solid rgba(255,255,255,0.06)', boxShadow: '0 60px 120px rgba(0,0,0,0.9)' }}>
         <BackRefreshBar />
-
         {/* Subtle gold glow top */}
         <div className="absolute inset-x-0 top-0 h-64 pointer-events-none"
           style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(232,184,109,0.08) 0%, transparent 100%)' }} />
-
         <div className="relative z-10 flex flex-col flex-1 px-7 pt-14 pb-8 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
-
           {/* Language Switcher */}
           <div className="flex justify-end mb-4">
             <select
@@ -173,7 +149,6 @@ export default function Login() {
           <div className="flex justify-end mb-4">
             {/* LanguageSwitcher component removed – already have language select above */}
           </div>
-
           {/* Logo */}
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
             <div className="w-[58px] h-[58px] rounded-[18px] flex items-center justify-center mx-auto mb-3"
@@ -193,7 +168,6 @@ export default function Login() {
               ⚠️ Authentication is currently disabled. Enable it in Supabase to sign in.
             </motion.div>
           )}
-
           {/* ── Google ── */}
           <motion.button
             initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 }}
@@ -204,14 +178,12 @@ export default function Login() {
             {gLoading ? <div className="w-5 h-5 rounded-full border-2 border-gray-300 border-t-blue-500 animate-spin" /> : <GoogleIcon />}
             {gLoading ? t('auth.opening_google') : t('auth.continue_with_google')}
           </motion.button>
-
           {/* Divider */}
           <div className="flex items-center gap-3 my-5">
             <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
             <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.3)' }}>{t('auth.or_continue_with')}</span>
             <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
           </div>
-
           {/* ── Tab toggle ── */}
           <div className="flex rounded-[14px] p-1 mb-5"
             style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
@@ -227,9 +199,7 @@ export default function Login() {
               </button>
             ))}
           </div>
-
           <AnimatePresence mode="wait">
-
             {/* ══ EMAIL ══ */}
             {tab === 'email' && (
               <motion.div key="email"
@@ -255,7 +225,6 @@ export default function Login() {
                     </button>
                   </div>
                 </Field>
-
                 <div className="flex items-center justify-between">
                   {/* Remember me */}
                   <button onClick={() => setRememberMe(v => !v)}
@@ -270,7 +239,6 @@ export default function Login() {
                     className="text-[12px] border-none bg-transparent cursor-pointer"
                     style={{ color: GOLD, fontWeight: 700 }}>{t('auth.forgot_password')}</button>
                 </div>
-
                 <AnimatePresence>
                   {error && (
                     <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
@@ -280,7 +248,6 @@ export default function Login() {
                     </motion.div>
                   )}
                 </AnimatePresence>
-
                 <motion.button whileTap={{ scale: 0.98 }} onClick={handleEmailLogin} disabled={loading || !isAuthEnabled}
                   className="w-full py-4 rounded-[16px] border-none cursor-pointer font-bold text-[15px]"
                   style={{ background: loading ? 'rgba(255,255,255,0.1)' : `linear-gradient(135deg, ${GOLD}, #C8903D)`, color: loading ? 'rgba(255,255,255,0.4)' : '#0D0F14' }}>
@@ -288,7 +255,6 @@ export default function Login() {
                 </motion.button>
               </motion.div>
             )}
-
             {/* ══ PHONE — ENTER NUMBER ══ */}
             {tab === 'phone' && phoneStep === 'input' && (
               <motion.div key="phone-input"
@@ -297,18 +263,7 @@ export default function Login() {
                 <Field label={t('auth.phone_number')}>
                   <div className="flex gap-2">
                     {/* Country code button */}
-                    <motion.button whileTap={{ scale: 0.97 }}
-                      onClick={() => setShowPicker(true)}
-                      className="flex items-center gap-2 px-3 py-3.5 rounded-[14px] border-none cursor-pointer flex-shrink-0"
-                      style={{ background: CARD, border: BORDER, minWidth: 96 }}>
-                      <span className="text-[22px] leading-none">{country.flag}</span>
-                      <div className="text-left">
-                        <div className="text-[12px] font-bold" style={{ color: 'white' }}>{country.code}</div>
-                        <div className="text-[9px]" style={{ color: 'rgba(255,255,255,0.3)' }}>{country.abbr}</div>
-                      </div>
-                      <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>▾</span>
-                    </motion.button>
-
+                    <CountryPicker value={country.code} onChange={(code) => { const found = COUNTRY_CODES.find(c => c.code === code); if (found) setCountry(found); }} />
                     <input type="tel" value={phone}
                       onChange={e => setPhone(e.target.value.replace(/[^\d\s\-()]/g, ''))}
                       placeholder="712 345 678"
@@ -320,7 +275,6 @@ export default function Login() {
                     {country.flag} {t('auth.phone_login_requires_sms')}
                   </p>
                 </Field>
-
                 <AnimatePresence>
                   {error && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -330,13 +284,11 @@ export default function Login() {
                     </motion.div>
                   )}
                 </AnimatePresence>
-
                 <motion.button whileTap={{ scale: 0.98 }} onClick={handleSendOTP} disabled={loading || !isAuthEnabled}
                   className="w-full py-4 rounded-[16px] border-none cursor-pointer font-bold text-[15px]"
                   style={{ background: loading ? 'rgba(255,255,255,0.1)' : `linear-gradient(135deg, ${GOLD}, #C8903D)`, color: loading ? 'rgba(255,255,255,0.4)' : '#0D0F14' }}>
                   {loading ? t('auth.sending_sms') : t('auth.send_code_sms')}
                 </motion.button>
-
                 <div className="px-4 py-3 rounded-[14px]"
                   style={{ background: 'rgba(62,207,178,0.06)', border: '1px solid rgba(62,207,178,0.12)' }}>
                   <div className="text-[12px]" style={{ color: 'rgba(255,255,255,0.45)', lineHeight: 1.6 }}>
@@ -345,7 +297,6 @@ export default function Login() {
                 </div>
               </motion.div>
             )}
-
             {/* ══ PHONE — OTP ══ */}
             {tab === 'phone' && phoneStep === 'otp' && (
               <motion.div key="phone-otp"
@@ -359,9 +310,7 @@ export default function Login() {
                     <span style={{ color: GOLD, fontWeight: 700 }}>{country.flag} {country.code} {phone}</span>
                   </div>
                 </div>
-
                 <OtpRow otp={otp} onChange={setOtpDigit} idPrefix="login-otp" accentColor={GOLD} />
-
                 <div className="text-center">
                   {resend > 0 ? (
                     <span className="text-[13px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
@@ -378,7 +327,6 @@ export default function Login() {
                     </div>
                   )}
                 </div>
-
                 <AnimatePresence>
                   {error && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -388,7 +336,6 @@ export default function Login() {
                     </motion.div>
                   )}
                 </AnimatePresence>
-
                 <motion.button whileTap={{ scale: 0.98 }}
                   onClick={handleVerifyOTP}
                   disabled={loading || otp.join('').length < 6}
@@ -401,9 +348,7 @@ export default function Login() {
                 </motion.button>
               </motion.div>
             )}
-
           </AnimatePresence>
-
           <div className="mt-6 text-center">
             <span className="text-[13px]" style={{ color: 'rgba(255,255,255,0.35)' }}>{t('auth.already_have_account')} </span>
             <button onClick={() => navigate('/signup/guest')}
@@ -414,15 +359,7 @@ export default function Login() {
             className="mt-3 text-[12px] w-full border-none bg-transparent cursor-pointer"
             style={{ color: 'rgba(255,255,255,0.25)' }}>{t('auth.back_to_home')}</button>
         </div>
-
         {/* Country Picker */}
-        <CountryPicker
-          visible={showPicker}
-          selected={country}
-          onSelect={setCountry}
-          onClose={() => setShowPicker(false)}
-          accentColor={GOLD}
-        />
       </motion.div>
     </div>
   );

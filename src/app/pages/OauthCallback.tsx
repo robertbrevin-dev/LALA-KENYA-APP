@@ -2,8 +2,10 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PhoneFrame from '../components/PhoneFrame';
 import { supabase } from '../../lib/supabase';
+import { useLanguage } from '../context/LanguageContext.tsx';
 
 export default function OauthCallback() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   useEffect(() => {

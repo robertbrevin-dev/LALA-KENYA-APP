@@ -8,8 +8,10 @@ import { toast } from 'sonner';
 import BackRefreshBar from '../components/BackRefreshBar';
 import BottomNav from '../components/BottomNav';
 import { GUEST_SERVICE_FEE_RATE } from '../config/pricing';
+import { useLanguage } from '../context/LanguageContext.tsx';
 
 export default function Payment() {
+  const { t } = useLanguage();
   const { propertyId } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();

@@ -7,8 +7,11 @@ import { useApp } from '../context/AppContext';
 import { supabase } from '../../lib/supabase';
 import BackRefreshBar from '../components/BackRefreshBar';
 import { LALA_COMMISSION_RATE } from '../config/pricing';
+import { useLanguage } from '../context/LanguageContext.tsx';
 
 export default function HostEarnings() {
+
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { currentUser, loading: appLoading } = useApp();
   const user = currentUser;
@@ -20,6 +23,7 @@ export default function HostEarnings() {
   const thisYear = now.getFullYear();
 
   // Protect route: wait for auth, then require a user
+  useEffect(() => { if (currentUser && currentUser.role !== 'host') navigate('/home', { replace: true }); }, [currentUser]);
   useEffect(() => {
     if (!appLoading && !user) {
       navigate('/login');

@@ -4,8 +4,10 @@ import BottomNav from '../components/BottomNav';
 import BackRefreshBar from '../components/BackRefreshBar';
 import PhoneFrame from '../components/PhoneFrame';
 import { useApp } from '../context/AppContext';
+import { useLanguage } from '../context/LanguageContext.tsx';
 
 export default function Messages() {
+  const { t } = useLanguage();
   const { conversations } = useApp();
   const navigate = useNavigate();
 
@@ -25,9 +27,9 @@ export default function Messages() {
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
           <p className="text-[12px] font-bold tracking-[2px] mb-1" style={{ color: 'rgba(232,184,109,0.5)' }}>INBOX</p>
-          <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: 30, fontWeight: 900, color: 'white', letterSpacing: '-0.5px' }}>Messages</h1>
+          <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: 30, fontWeight: 900, color: 'white', letterSpacing: '-0.5px' }}>{t('messages.title')}</h1>
           <p className="text-[13px] mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
-            {conversations.length > 0 ? `${conversations.length} conversation${conversations.length > 1 ? 's' : ''}` : '0 conversations'}
+            {conversations.length > 0 ? `${conversations.length} ${t("messages.conversations")}` : t('messages.no_messages')}
           </p>
         </motion.div>
 

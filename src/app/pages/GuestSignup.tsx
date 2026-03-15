@@ -322,26 +322,71 @@ export default function GuestSignup() {
                     className={inputCls} style={inputStyle} />
                 </Field>
                 <Field label="PHONE NUMBER">
-                  <div className="flex gap-2">
+                  <div className="relative flex gap-2">
                     <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowPicker(true)}
                       className="flex items-center gap-2 px-3 py-3.5 rounded-[14px] border-none cursor-pointer flex-shrink-0"
                       style={{ background: CARD, border: BORDER, minWidth: 96 }}>
-                      <img src={`https://flagcdn.com/w40/${country.abbr.toLowerCase()}.png`} alt={country.abbr} style={{ width:24, height:16, objectFit:"cover", borderRadius:3 }} />
+                      <img src={`https://flagcdn.com/w40/${country.country.toLowerCase().replace(/\s+/g, '-')}.png`} alt={country.country} style={{ width:24, height:16, objectFit:"cover", borderRadius:3 }} />
                       <div className="text-left">
                         <div className="text-[12px] font-bold" style={{ color: 'white' }}>{country.code}</div>
-                        <div className="text-[9px]" style={{ color: 'rgba(255,255,255,0.3)' }}>{country.abbr}</div>
+                        <div className="text-[9px]" style={{ color: 'rgba(255,255,255,0.3)' }}>{country.country}</div>
                       </div>
-                      <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>▾</span>
+                      <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>▼</span>
                     </motion.button>
                     <input type="tel" value={phone}
                       onChange={e => setPhone(e.target.value.replace(/[^\d\s\-()]/g, ''))}
                       placeholder="712 345 678" autoComplete="tel-national"
                       className={`flex-1 ${inputCls}`} style={inputStyle} />
                   </div>
+                  
+                  <AnimatePresence>
+                    {showPicker && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="absolute bottom-full left-0 right-0 w-full max-h-[80vh] overflow-hidden bg-gray-900 rounded-[20px] shadow-lg border border-gray-700 z-50"
+                      >
+                        <div className="p-4">
+                          <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-white text-lg font-bold">Select Country</h3>
+                            <button onClick={() => setShowPicker(false)} className="text-white text-2xl">×</button>
+                          </div>
+                          <div className="max-h-[60vh] overflow-y-auto">
+                            {COUNTRY_CODES.map((country: CountryCode) => (
+                              <button
+                                key={country.code}
+                                type="button"
+                                onClick={() => {
+                                  setCountry(country.code);
+                                  setShowPicker(false);
+                                }}
+                                className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-gray-800 text-white text-left border-b border-gray-800"
+                              >
+                                <img 
+                                  src={`https://flagcdn.com/w40/${country.country.toLowerCase().replace(/\s+/g, '-')}.png`} 
+                                  alt={country.country} 
+                                  style={{ width: 24, height: 16, objectFit: "cover", borderRadius: 2 }}
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                    (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                                  }}
+                                />
+                                <span className="hidden">{country.flag}</span>
+                                <span className="text-white font-medium">{country.code}</span>
+                                <span className="text-gray-400">{country.country}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </Field>
                   <p className="text-[11px] mt-2" style={{ color: 'rgba(255,255,255,0.3)' }}>
                     SMS code will be sent to {country.code} {phone || '...'}
                   </p>
-                </Field>
 
                 {/* Terms */}
                 <button onClick={() => setAgreed(v => !v)}
@@ -423,8 +468,6 @@ export default function GuestSignup() {
               style={{ color: GOLD, fontWeight: 700 }}>Sign in</button>
           </div>
         </div>
-
-        <CountryPicker visible={showPicker} selected={country} onSelect={setCountry} onClose={() => setShowPicker(false)} accentColor={GOLD} />
       </motion.div>
     </div>
   );
