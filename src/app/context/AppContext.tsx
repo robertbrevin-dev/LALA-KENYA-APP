@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 
 
@@ -102,6 +102,11 @@ interface AppContextType {
   acceptCall: (call: any) => void;
   rejectCall: (call: any) => void;
   incomingCall: any;
+  callConnected: boolean;
+  notifications: any[];
+  unreadCount: number;
+  markNotificationRead: (id: string) => void;
+  markAllNotificationsRead: () => void;
 
 
 
@@ -171,6 +176,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const [callStatus, setCallStatus] = useState<CallStatus>({ active: false });
   const [incomingCall, setIncomingCall] = useState<any>(null);
+  const [callConnected, setCallConnected] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const unreadCount = notifications.filter(n => !n.is_read).length;
+  const peerRef = React.useRef<RTCPeerConnection | null>(null);
+  const localStreamRef = React.useRef<MediaStream | null>(null);
+  const createPeer = () => new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] });
+  const cleanupWebRTC = () => {
+    if (peerRef.current) { peerRef.current.close(); peerRef.current = null; }
+    if (localStreamRef.current) { localStreamRef.current.getTracks().forEach(t => t.stop()); localStreamRef.current = null; }
+  };
+  const markNotificationRead = async (id: string) => {
+    await supabase.from('notifications').update({ is_read: true }).eq('id', id);
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+  };
+  const markAllNotificationsRead = async () => {
+    if (!currentUser?.id) return;
+    await supabase.from('notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('is_read', false);
+    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+  };
 
   useEffect(() => {
     if (!currentUser?.id) return;
@@ -200,6 +224,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
       .subscribe();
     return () => { supabase.removeChannel(sub); };
   }, [currentUser?.id]);
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    supabase.from('notifications').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(50)
+      .then(({ data }) => { if (data) setNotifications(data); });
+    const sub = supabase.channel('notifications-' + currentUser.id)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.' + currentUser.id },
+        (payload) => { setNotifications(prev => [payload.new, ...prev]); })
+      .subscribe();
+    return () => { supabase.removeChannel(sub); };
+  }, [currentUser?.id]);
+
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    const autoExpire = async () => {
+      await supabase.from('bookings').update({ booking_status: 'expired' }).eq('booking_status', 'inquiry').lt('created_at', new Date(Date.now() - 5 * 60 * 1000).toISOString());
+      await supabase.from('bookings').update({ booking_status: 'expired' }).eq('booking_status', 'accepted').lt('updated_at', new Date(Date.now() - 30 * 60 * 1000).toISOString());
+    };
+    autoExpire();
+    const t = setInterval(autoExpire, 60000);
+    return () => clearInterval(t);
+  }, [currentUser?.id]);
+
 
 
 
@@ -1888,9 +1934,49 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }).select().single();
     if (callError) { console.error('CALL INSERT ERROR:', JSON.stringify(callError)); } else { console.log('CALL OK:', callRow?.id); }
     setCallStatus({ active: true, conversationId, participantName, duration: 0, callId: callRow?.id, callType });
+    if (callRow?.id && receiverId) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        localStreamRef.current = stream;
+        const peer = createPeer();
+        peerRef.current = peer;
+        stream.getTracks().forEach(t => peer.addTrack(t, stream));
+        peer.onicecandidate = async (e) => {
+          if (e.candidate) await supabase.from('call_ice_candidates').insert({ call_id: callRow.id, user_id: currentUser.id, candidate: e.candidate.toJSON() });
+        };
+        peer.ontrack = (e) => { const a = document.getElementById('remote-audio') as HTMLAudioElement; if (a) { a.srcObject = e.streams[0]; a.play().catch(()=>{}); } };
+        const offer = await peer.createOffer();
+        await peer.setLocalDescription(offer);
+        await supabase.from('calls').update({ sdp_offer: JSON.stringify(offer) }).eq('id', callRow.id);
+      } catch(err) { console.error('WebRTC offer error:', err); }
+    }
   };
   const acceptCall = async (call: any) => {
-    await supabase.from('calls').update({ call_status: 'accepted' }).eq('id', call.id);
+    setCallStatus({ active: true, conversationId: call.conversation_id, participantName: call.caller_name || 'Caller', duration: 0, callId: call.id, callType: call.call_type });
+    setCallConnected(true);
+    setIncomingCall(null);
+    try {
+      const { data: callData } = await supabase.from('calls').select('sdp_offer').eq('id', call.id).maybeSingle();
+      await supabase.from('calls').update({ call_status: 'accepted' }).eq('id', call.id);
+      if (callData?.sdp_offer) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        localStreamRef.current = stream;
+        const peer = createPeer();
+        peerRef.current = peer;
+        stream.getTracks().forEach(t => peer.addTrack(t, stream));
+        peer.onicecandidate = async (e) => {
+          if (e.candidate) await supabase.from('call_ice_candidates').insert({ call_id: call.id, user_id: currentUser?.id, candidate: e.candidate.toJSON() });
+        };
+        peer.ontrack = (e) => { const a = document.getElementById('remote-audio') as HTMLAudioElement; if (a) { a.srcObject = e.streams[0]; a.play().catch(()=>{}); } };
+        await peer.setRemoteDescription(new RTCSessionDescription(JSON.parse(callData.sdp_offer)));
+        const answer = await peer.createAnswer();
+        await peer.setLocalDescription(answer);
+        await supabase.from('calls').update({ sdp_answer: JSON.stringify(answer) }).eq('id', call.id);
+        const { data: cands } = await supabase.from('call_ice_candidates').select('*').eq('call_id', call.id).neq('user_id', currentUser?.id);
+        for (const cand of cands || []) { try { await peer.addIceCandidate(new RTCIceCandidate(cand.candidate)); } catch(e) {} }
+      }
+    } catch(err) { console.error('WebRTC answer error:', err); }
+    // WEBRTC_ACCEPT_END
     setCallStatus({ active: true, conversationId: call.conversation_id, participantName: call.caller_name || 'Caller', duration: 0, callId: call.id, callType: call.call_type });
     setIncomingCall(null);
   };
@@ -1899,6 +1985,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setIncomingCall(null);
   };
   const endCall = async () => {
+    setCallConnected(false);
+    cleanupWebRTC();
     if (callStatus.callId) {
       await supabase.from('calls').update({ call_status: 'ended', ended_at: new Date().toISOString() }).eq('id', callStatus.callId);
     }
@@ -1967,7 +2055,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
 
 
-      callStatus, incomingCall, loading, toggleFavorite, refreshUser, addBooking, sendMessage,
+      callStatus, callConnected, incomingCall, notifications, unreadCount, markNotificationRead, markAllNotificationsRead, loading, toggleFavorite, refreshUser, addBooking, sendMessage,
 
 
 

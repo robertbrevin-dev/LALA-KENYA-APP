@@ -8,6 +8,8 @@ import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext.tsx';
 import { FilterCategory, Property } from '../types';
 import { supabase } from '../../lib/supabase';
+import NotificationBell from '../components/NotificationBell';
+import NotificationPanel from '../components/NotificationPanel';
 import BackRefreshBar from '../components/BackRefreshBar';
 
 const filterCategories: FilterCategory[] = ['All', 'Apartment', 'Studio', 'Penthouse', 'Shared'];
@@ -20,9 +22,10 @@ const getGreeting = () => {
 };
 
 export default function Home() {
-  const { properties, currentUser } = useApp();
+  const { properties, currentUser, notifications, unreadCount, markNotificationRead, markAllNotificationsRead } = useApp();
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const [notifOpen, setNotifOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [agentStatus, setAgentStatus] = useState<'idle'|'listening'|'thinking'|'speaking'>('idle');
   const [agentText, setAgentText] = useState('');
@@ -184,6 +187,7 @@ YOUR ROLE:
           </motion.div>
 
           <div className="flex items-center gap-2">
+            <NotificationBell onOpen={() => { setNotifOpen(true); markAllNotificationsRead(); }} />
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={() => navigate('/map')}

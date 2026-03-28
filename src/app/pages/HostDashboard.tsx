@@ -5,13 +5,16 @@ import PhoneFrame from '../components/PhoneFrame';
 import BottomNav from '../components/BottomNav';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../../lib/supabase';
+import NotificationBell from '../components/NotificationBell';
+import NotificationPanel from '../components/NotificationPanel';
 import BackRefreshBar from '../components/BackRefreshBar';
 import { useLanguage } from '../context/LanguageContext.tsx';
 
 export default function HostDashboard() {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const { currentUser, loading: appLoading } = useApp();
+  const [notifOpen, setNotifOpen] = useState(false);
+  const { currentUser, loading: appLoading, notifications, unreadCount, markNotificationRead, markAllNotificationsRead } = useApp();
 
   useEffect(() => {
     if (appLoading) return;
@@ -171,6 +174,7 @@ export default function HostDashboard() {
             <div className="text-[13px]" style={{ color: 'rgba(62,207,178,0.7)', fontWeight: 500 }}>
               Welcome back,
             </div>
+            <NotificationBell onOpen={() => { setNotifOpen(true); markAllNotificationsRead(); }} />
             <button
               onClick={() => navigate('/host/profile')}
               className="w-11 h-11 rounded-full flex items-center justify-center border-none cursor-pointer font-bold text-[16px]"

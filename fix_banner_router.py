@@ -1,4 +1,7 @@
-import { useApp } from '../context/AppContext';
+# -*- coding: utf-8 -*-
+
+# Fix IncomingCallBanner - remove useNavigate, use window.location instead
+banner = '''import { useApp } from '../context/AppContext';
 import { Phone, PhoneOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -8,6 +11,7 @@ export default function IncomingCallBanner() {
 
   const handleAccept = () => {
     acceptCall(incomingCall);
+    window.location.href = '/conversation/' + incomingCall.conversation_id;
   };
 
   return (
@@ -29,3 +33,7 @@ export default function IncomingCallBanner() {
     </AnimatePresence>
   );
 }
+'''
+with open('src/app/components/IncomingCallBanner.tsx', 'w', encoding='utf-8') as f:
+    f.write(banner)
+print("Done")

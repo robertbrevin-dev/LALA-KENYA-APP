@@ -1,4 +1,7 @@
-import { useApp } from '../context/AppContext';
+# -*- coding: utf-8 -*-
+
+# Fix IncomingCallBanner - use hash navigation instead of full reload
+banner = '''import { useApp } from '../context/AppContext';
 import { Phone, PhoneOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -29,3 +32,34 @@ export default function IncomingCallBanner() {
     </AnimatePresence>
   );
 }
+'''
+with open('src/app/components/IncomingCallBanner.tsx', 'w', encoding='utf-8') as f:
+    f.write(banner)
+print("Banner fixed")
+
+# Fix Conversation.tsx - when callStatus.active + callConnected -> show call UI immediately
+with open('src/app/pages/Conversation.tsx', 'rb') as f: raw = f.read()
+crlf = b'\r\n' in raw
+c = raw.decode('utf-8').replace('\r\n','\n').replace('\r','\n')
+
+# Fix accept button inside conversation page
+c = c.replace(
+    "acceptCall(incomingCall); setCallState('connected'); setCallType(incomingCall.call_type || 'audio');",
+    "acceptCall(incomingCall); setCallState('connected'); setLocalDuration(0); setCallType(incomingCall.call_type || 'audio');"
+)
+
+# When callStatus becomes active and callConnected = true, show call UI
+c = c.replace(
+    "  useEffect(() => {\n    setShowCallUI(callStatus.active && callStatus.conversationId === id);\n  }, [callStatus.active, callStatus.conversationId, id]);",
+    """  useEffect(() => {
+    setShowCallUI(callStatus.active && callStatus.conversationId === id);
+    if (callStatus.active && callStatus.conversationId === id && callConnected) {
+      setCallState('connected');
+    }
+  }, [callStatus.active, callStatus.conversationId, id, callConnected]);"""
+)
+
+print("Conversation fixed:", "callConnected" in c)
+out = c.replace('\n', '\r\n') if crlf else c
+open('src/app/pages/Conversation.tsx', 'wb').write(out.encode('utf-8'))
+print("Saved")

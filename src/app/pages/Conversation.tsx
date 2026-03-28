@@ -27,7 +27,7 @@ export default function Conversation() {
     );
   }
 
-  const { conversations, currentUser, sendMessage, sendSimulatedMessage, markMessagesAsRead, callStatus, incomingCall, startCall, endCall, acceptCall, rejectCall } = appContext;
+  const { conversations, currentUser, sendMessage, sendSimulatedMessage, markMessagesAsRead, callStatus, callConnected, incomingCall, startCall, endCall, acceptCall, rejectCall } = appContext;
   const [messageText, setMessageText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showCallUI, setShowCallUI] = useState(false);
@@ -36,6 +36,7 @@ export default function Conversation() {
   const [isSpeaker, setIsSpeaker] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [callState, setCallState] = useState('calling');
+  const [localDuration, setLocalDuration] = useState(0);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const [localStream, setLocalStream] = useState<MediaStream|null>(null);
   const [realtimeMessages, setRealtimeMessages] = useState<Message[]>([]);
@@ -174,10 +175,10 @@ export default function Conversation() {
   useEffect(() => {
     if (!callStatus.active) {
       setCallState('calling');
-    } else if ((callStatus as any).connected) {
+    } else if ((callStatus as any).connected || callConnected) {
       setCallState('connected');
     }
-  }, [callStatus.active, (callStatus as any).connected]);
+  }, [callStatus.active, (callStatus as any).connected, callConnected]);
 
   // Auto missed call after 30s if no answer
   useEffect(() => {
@@ -204,7 +205,28 @@ export default function Conversation() {
 
   useEffect(() => {
     setShowCallUI(callStatus.active && callStatus.conversationId === id);
-  }, [callStatus.active, callStatus.conversationId, id]);
+    if (callStatus.active && callStatus.conversationId === id && callConnected) {
+      setCallState('connected');
+    }
+  }, [callStatus.active, callStatus.conversationId, id, callConnected]);
+
+  // Timer counts when connected
+  useEffect(() => {
+    if (callState !== 'connected') { setLocalDuration(0); return; }
+    const t = setInterval(() => setLocalDuration(d => d + 1), 1000);
+    return () => clearInterval(t);
+  }, [callState]);
+
+  // Fallback poll: check call status every 2s
+  useEffect(() => {
+    if (callState !== 'calling' || !callStatus.callId) return;
+    const interval = setInterval(async () => {
+      const { data } = await supabase.from('calls').select('call_status').eq('id', callStatus.callId).maybeSingle();
+      if (data?.call_status === 'accepted') setCallState('connected');
+      if (data?.call_status === 'rejected' || data?.call_status === 'ended') { setCallState('calling'); endCall(); }
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [callState, callStatus.callId]);
 
   if (!activeConversation) {
     return (
@@ -258,7 +280,10 @@ export default function Conversation() {
     // wait for host to accept via realtime
   };
 
+
   const handleEndCall = () => {
+    setLocalDuration(0);
+    setCallState('calling');
     if (localStream) { localStream.getTracks().forEach(t => t.stop()); setLocalStream(null); }
     endCall();
   };
@@ -320,7 +345,7 @@ export default function Conversation() {
                 transition={{ duration: 1.5, repeat: Infinity }}
                 className="text-[15px] mb-3"
                 style={{ color: callState === 'connected' ? '#3ECFB2' : 'rgba(255,255,255,0.45)' }}>
-                {callState === 'calling' ? (callType === 'video' ? 'Video calling...' : 'Calling...') : formatCallDuration(callStatus.duration)}
+                {callState === 'calling' ? (callType === 'video' ? 'Video calling...' : 'Calling...') : formatCallDuration(localDuration)}
               </motion.div>
               {callState === 'connected' && (
                 <div className="text-[11px] px-3 py-1 rounded-full" style={{ background: 'rgba(62,207,178,0.1)', color: '#3ECFB2', border: '1px solid rgba(62,207,178,0.2)' }}>
@@ -701,7 +726,7 @@ export default function Conversation() {
               <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>Decline</span>
             </div>
             <div className="flex flex-col items-center gap-2">
-              <button onClick={() => { acceptCall(incomingCall); setCallState('connected'); setCallType(incomingCall.call_type || 'audio'); }}
+              <button onClick={() => { acceptCall(incomingCall); setCallState('connected'); setLocalDuration(0); setCallType(incomingCall.call_type || 'audio'); }}
                 className="w-16 h-16 rounded-full flex items-center justify-center"
                 style={{ background: '#16a34a', boxShadow: '0 8px 32px rgba(22,163,74,0.45)' }}>
                 <Phone size={26} color="white" />

@@ -1,4 +1,5 @@
 import { RouterProvider } from 'react-router-dom';
+import IncomingCallBanner from './components/IncomingCallBanner';
 import { Toaster } from 'sonner';
 import { router } from './routes';
 import { AppProvider } from './context/AppContext';
@@ -57,6 +58,8 @@ export default function App() {
     <LanguageProvider>
       <AppProvider>
         <RouterProvider router={router} />
+        <IncomingCallBanner />
+        <audio id="remote-audio" autoPlay playsInline style={{ display: 'none' }} />
         <Toaster
           position="top-center"
           toastOptions={{
